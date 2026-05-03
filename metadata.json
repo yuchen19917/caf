@@ -1,0 +1,12 @@
+{
+  "name": "ATOMA CAF & Document Management System",
+  "description": "Comprehensive customer application and document management platform for ATOMA mobile network operator, supporting SIM registration, KYC, and auditing.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "Form Management",
+    "Document Storage",
+    "Audit Workflow"
+  ]
+}
