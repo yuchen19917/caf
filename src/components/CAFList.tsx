@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Search, 
   Filter, 
@@ -10,17 +10,36 @@ import {
   ExternalLink,
   UserPlus
 } from 'lucide-react';
-import { MOCK_CAFS } from '../mockData';
 import { cn } from '../lib/utils';
+import { useApplications } from '../context/ApplicationContext';
 import { CAFStatus } from '../types';
 
 interface CAFListProps {
   onCorrect?: (caf: any) => void;
   onNewEntry?: () => void;
+  onView?: (caf: any) => void;
+  user: any;
 }
 
-export default function CAFList({ onCorrect, onNewEntry }: CAFListProps) {
+export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFListProps) {
+  const { getFilteredCAFs } = useApplications();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Get filtered CAFs based on user role
+  const cafs = useMemo(() => {
+    if (!user) return [];
+    return getFilteredCAFs(user);
+  }, [getFilteredCAFs, user]);
+
+  const filtered = useMemo(
+    () =>
+      cafs.filter(
+        (caf) =>
+          caf.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          caf.id.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [cafs, searchTerm]
+  );
 
   const getStatusColor = (status: CAFStatus) => {
     switch (status) {
@@ -95,10 +114,7 @@ export default function CAFList({ onCorrect, onNewEntry }: CAFListProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {MOCK_CAFS.filter(caf => 
-                caf.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                caf.id.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((caf) => (
+              {filtered.map((caf) => (
                 <tr key={caf.id} className="hover:bg-indigo-50/20 transition-colors group cursor-pointer">
                   <td className="pl-8 pr-6 py-5">
                     <div className="flex items-center gap-3">
@@ -154,7 +170,11 @@ export default function CAFList({ onCorrect, onNewEntry }: CAFListProps) {
                            <Download size={18} />
                          </button>
                        )}
-                       <button className="p-2 text-slate-300 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all" title="View Detail">
+                       <button 
+                         onClick={(e) => { e.stopPropagation(); onView?.(caf); }}
+                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" 
+                         title="View Detail"
+                       >
                          <Eye size={18} />
                        </button>
                     </div>
@@ -168,7 +188,11 @@ export default function CAFList({ onCorrect, onNewEntry }: CAFListProps) {
         {/* Improved Pagination */}
         <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Showing <span className="text-slate-900">1-3</span> of <span className="text-slate-900">24</span> CAFs
+            Showing{' '}
+            <span className="text-slate-900">
+              {filtered.length === 0 ? '0' : `1-${filtered.length}`}
+            </span>{' '}
+            of <span className="text-slate-900">{cafs.length}</span> CAFs
           </p>
           <div className="flex items-center gap-1.5">
             <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-lg text-slate-400 disabled:opacity-30" disabled>

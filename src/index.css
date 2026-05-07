@@ -1,8 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+/* Avoid loading fonts from fonts.googleapis.com — blocked or very slow in some networks,
+   which blocks the entire stylesheet and leaves the page spinning until timeout. */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
   --color-primary: var(--color-indigo-600);
   --color-primary-hover: var(--color-indigo-700);
 }
@@ -17,6 +19,29 @@
 .ql-custom-container .ql-editor {
   min-height: 150px;
   max-height: 300px;
+}
+
+/* Modal create/edit: bounded editor with internal scroll (root is .quill from react-quill) */
+.ql-modal-editor.quill {
+  display: flex;
+  flex-direction: column;
+  max-height: min(360px, 45vh);
+}
+.ql-modal-editor .ql-toolbar {
+  flex-shrink: 0;
+}
+.ql-modal-editor .ql-container {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ql-modal-editor .ql-editor {
+  flex: 1 1 auto;
+  min-height: 140px;
+  max-height: none !important;
+  overflow-y: auto;
 }
 
 .ql-editor-xl .ql-editor {

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Enterprise CAF Template (English)</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1229B3;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1229B3;
+        }
+        button {
+            background: #1229B3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0d1f8f;
+        }
+        .success {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Create Enterprise Broadband CAF Template (English)</h1>
+        
+        <div class="info">
+            <p><strong>Instructions:</strong></p>
+            <ul>
+                <li>This tool will create a new Enterprise CAF template in English</li>
+                <li>Template includes complete enterprise information, service terms, and fee details</li>
+                <li>Click the button below to automatically add the template to the system</li>
+                <li>After successful creation, refresh the page and go to "Template Management" to view</li>
+            </ul>
+        </div>
+
+        <button onclick="createEnterpriseTemplate()">Create Enterprise CAF Template</button>
+
+        <div id="success" class="success"></div>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        function createEnterpriseTemplate() {
+            try {
+                // Enterprise CAF Template HTML Content (English Version)
+                const termsHtml = `<div style="text-align: center; border-bottom: 3px solid #1229B3; padding-bottom: 20px; margin-bottom: 30px;">
+  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">ATOMA TELECOM</h1>
+  <p style="color: #666; font-size: 14px; margin: 5px 0 0 0; font-weight: 600;">ENTERPRISE BROADBAND SERVICE APPLICATION FORM</p>
+  <p style="color: #999; font-size: 11px; margin: 5px 0 0 0;">Customer Application Form (CAF)</p>
+</div>
+
+<h2 style="color: #1229B3; font-size: 18px; border-left: 4px solid #1229B3; padding-left: 10px; margin-top: 30px;">I. APPLICANT INFORMATION</h2>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; width: 35%; font-weight: bold;">Company Name</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{fullName}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Business Registration Number</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{idNumber}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Company Type</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{idType}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Registered Address</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{address}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Contact Number</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{contactNumber}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Email Address</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{email}}</td>
+  </tr>
+</table>
+
+<h2 style="color: #1229B3; font-size: 18px; border-left: 4px solid #1229B3; padding-left: 10px; margin-top: 30px;">II. SERVICE INFORMATION</h2>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; width: 35%; font-weight: bold;">Service Type</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{serviceType}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Plan Name</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{planName}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Service Delivery Method</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{serviceDelivery}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Billing Cycle</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{billingCycle}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Activation Fee</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{activationFee}}</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;">Monthly Fee</td>
+    <td style="padding: 10px; border: 1px solid #ddd;">{{monthlyFee}}</td>
+  </tr>
+</table>
+
+<h2 style="color: #1229B3; font-size: 18px; border-left: 4px solid #1229B3; padding-left: 10px; margin-top: 30px;">III. TERMS OF SERVICE & COMMITMENTS</h2>
+
+<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+  <h3 style="color: #333; font-size: 14px; margin-top: 0;">3.1 Service Agreement</h3>
+  <p style="line-height: 1.8; color: #666; font-size: 13px;">
+    I, as the authorized representative of <strong>{{fullName}}</strong>, hereby apply for enterprise broadband access services provided by ATOMA TELECOM and commit to the following:
+  </p>
+  <ol style="line-height: 1.8; color: #666; font-size: 13px;">
+    <li>All company information and related documents provided are authentic and valid. I am willing to bear corresponding legal responsibilities for any false information;</li>
+    <li>I have fully understood the tariff standards, service content, and related terms of the applied service;</li>
+    <li>I agree to comply with ATOMA TELECOM's service agreement and related management regulations;</li>
+    <li>I guarantee not to use the applied network service for illegal or irregular activities;</li>
+    <li>I agree to pay service fees on time. In case of overdue payment, I agree that the operator may take measures such as service suspension.</li>
+  </ol>
+
+  <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.2 Service Level Agreement (SLA)</h3>
+  <p style="line-height: 1.8; color: #666; font-size: 13px;">
+    ATOMA TELECOM commits to providing the following service guarantees for enterprise customers:
+  </p>
+  <ul style="line-height: 1.8; color: #666; font-size: 13px;">
+    <li><strong>Network Availability</strong>: ≥99.5% (Dedicated line services ≥99.9%)</li>
+    <li><strong>Fault Response Time</strong>: Response within 2 hours, resolution within 24 hours</li>
+    <li><strong>Technical Support</strong>: 7×24 customer service hotline</li>
+    <li><strong>Bandwidth Guarantee</strong>: Committed bandwidth not less than 95% of plan standard</li>
+  </ul>
+
+  <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.3 Fee Description</h3>
+  <p style="line-height: 1.8; color: #666; font-size: 13px;">
+    <strong>Activation Fee</strong>: {{activationFee}} (One-time charge, non-refundable)<br>
+    <strong>Monthly Fee</strong>: {{monthlyFee}}<br>
+    <strong>Billing Cycle</strong>: {{billingCycle}}<br>
+    <strong>Payment Methods</strong>: Bank transfer, check, online payment, etc.<br>
+    <strong>Deposit Policy</strong>: Based on credit assessment, a deposit equivalent to 2-3 months' rent may be required
+  </p>
+
+  <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.4 Breach of Contract Liability</h3>
+  <p style="line-height: 1.8; color: #666; font-size: 13px;">
+    If the customer violates the service agreement or engages in illegal activities, ATOMA TELECOM has the right to immediately suspend the service and reserves the right to pursue legal liability. Fees paid will not be refunded.
+  </p>
+
+  <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.5 Privacy Protection</h3>
+  <p style="line-height: 1.8; color: #666; font-size: 13px;">
+    ATOMA TELECOM commits to strictly protecting customer information security and will not disclose customer data to third parties, except as required by laws, regulations, or regulatory authorities.
+  </p>
+</div>
+
+<h2 style="color: #1229B3; font-size: 18px; border-left: 4px solid #1229B3; padding-left: 10px; margin-top: 30px;">IV. APPLICANT DECLARATION</h2>
+
+<div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+  <p style="line-height: 1.8; color: #856404; font-size: 13px; margin: 0;">
+    <strong>IMPORTANT DECLARATION:</strong> I, as the authorized representative of <strong>{{fullName}}</strong>, have carefully read and fully understand all the above terms and agree to accept ATOMA TELECOM's service agreement and related regulations. I confirm that all information provided is true, accurate, and complete, and I am willing to bear all legal responsibilities arising from false information.
+  </p>
+</div>
+
+<div style="margin-top: 40px;">
+  <p style="color: #666; font-size: 13px; line-height: 1.8;">
+    <strong>Application Date</strong>: {{submissionDate}}<br>
+    <strong>Application Number</strong>: Auto-generated by system<br>
+    <strong>Service Center</strong>: ATOMA TELECOM Enterprise Service Center
+  </p>
+</div>
+
+<div style="margin-top: 50px; page-break-inside: avoid;">
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="width: 50%; padding: 20px; vertical-align: top;">
+        <p style="font-weight: bold; color: #333; margin-bottom: 10px;">Authorized Representative Signature:</p>
+        <div style="border-bottom: 2px solid #333; height: 60px; margin-bottom: 10px;"></div>
+        <p style="color: #666; font-size: 12px;">Name: ___________________</p>
+        <p style="color: #666; font-size: 12px;">Position: ___________________</p>
+        <p style="color: #666; font-size: 12px;">Date: ___________________</p>
+      </td>
+      <td style="width: 50%; padding: 20px; vertical-align: top;">
+        <p style="font-weight: bold; color: #333; margin-bottom: 10px;">Company Seal:</p>
+        <div style="border: 2px dashed #ccc; height: 100px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">
+          (Affix Company Seal)
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #1229B3; text-align: center;">
+  <p style="color: #999; font-size: 11px; line-height: 1.6;">
+    ATOMA TELECOM Enterprise Service Center<br>
+    Customer Service Hotline: +93 (0) 700-XXX-XXXX | Enterprise Email: enterprise@atoma.af<br>
+    Address: Kabul Business District, Afghanistan | Postal Code: 1001<br>
+    <br>
+    <em style="font-size: 10px;">This application form is made in duplicate, one for the customer and one for the operator.</em>
+  </p>
+</div>`;
+
+                // Create new template object
+                const newTemplate = {
+                    id: `TPL-ENT-EN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+                    name: 'Enterprise Broadband Service Application (English)',
+                    description: 'For enterprise customers applying for fixed broadband, fiber access, leased line and other services',
+                    customerType: 'Corporate',
+                    businessType: 'Enterprise Broadband Service',
+                    channel: 'Direct',
+                    product: 'Enterprise Fiber / Leased Line',
+                    status: 'Active',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    termsAndConditions: termsHtml,
+                    fields: [
+                        { id: 'f1', label: 'Company Name', type: 'text', required: true },
+                        { id: 'f2', label: 'Business Registration Number', type: 'text', required: true },
+                        { id: 'f3', label: 'Company Type', type: 'select', required: true, options: ['Limited Company', 'Joint Stock Company', 'Sole Proprietorship', 'Other'] },
+                        { id: 'f4', label: 'Registered Address', type: 'textarea', required: true },
+                        { id: 'f5', label: 'Contact Number', type: 'text', required: true },
+                        { id: 'f6', label: 'Email Address', type: 'text', required: true },
+                        { id: 'f7', label: 'Legal Representative Name', type: 'text', required: true },
+                        { id: 'f8', label: 'Legal Representative ID Number', type: 'text', required: true },
+                        { id: 'f9', label: 'Authorized Representative Name', type: 'text', required: true },
+                        { id: 'f10', label: 'Authorized Representative Phone', type: 'text', required: true },
+                        { id: 'f11', label: 'Service Type', type: 'select', required: true, options: ['Enterprise Broadband', 'Leased Line', 'Hybrid Access'] },
+                        { id: 'f12', label: 'Plan Name', type: 'text', required: true },
+                        { id: 'f13', label: 'Bandwidth Requirement', type: 'select', required: true, options: ['10M', '50M', '100M', '200M', '1000M'] },
+                        { id: 'f14', label: 'Installation Address', type: 'textarea', required: true },
+                        { id: 'f15', label: 'Static IP Required', type: 'checkbox', required: false },
+                        { id: 'f16', label: 'Number of IP Addresses', type: 'number', required: false },
+                        { id: 'f17', label: 'Technical Contact Person', type: 'text', required: false },
+                        { id: 'f18', label: 'Technical Contact Phone', type: 'text', required: false },
+                        { id: 'f19', label: 'Finance Contact Person', type: 'text', required: false },
+                        { id: 'f20', label: 'Finance Contact Phone', type: 'text', required: false },
+                        { id: 'f21', label: 'Special Requirements', type: 'textarea', required: false }
+                    ]
+                };
+
+                // Read existing templates from localStorage
+                const STORAGE_KEY = 'caf_templates_store_v2';
+                let templates = [];
+                
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        templates = JSON.parse(raw);
+                    }
+                } catch (e) {
+                    console.error('Failed to read existing templates:', e);
+                }
+
+                // Check if template with same name already exists
+                const existingIndex = templates.findIndex(t => t.name === newTemplate.name);
+                if (existingIndex >= 0) {
+                    // Update existing template
+                    templates[existingIndex] = newTemplate;
+                    document.getElementById('success').textContent = '✅ Enterprise CAF Template (English) has been updated! Template ID: ' + newTemplate.id;
+                } else {
+                    // Add new template
+                    templates.unshift(newTemplate);
+                    document.getElementById('success').textContent = '✅ Enterprise CAF Template (English) created successfully! Template ID: ' + newTemplate.id;
+                }
+
+                // Save to localStorage
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+
+                document.getElementById('success').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+
+                // Prompt to refresh after 1 second
+                setTimeout(() => {
+                    if (confirm('Template created successfully! Refresh the page now to view?')) {
+                        window.location.href = '/';
+                    }
+                }, 1000);
+
+            } catch (error) {
+                console.error('Failed to create template:', error);
+                document.getElementById('error').textContent = '❌ Creation failed: ' + error.message;
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('success').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

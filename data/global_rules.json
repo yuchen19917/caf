@@ -1,0 +1,125 @@
+{
+  "rules": [
+    {
+      "id": "GR-COMP-BL-001",
+      "category": "business_compliance",
+      "name": "Central blacklist gate",
+      "summary": "All CAF submissions must query the central blacklist before identity verification. Matches on tax ID, MSISDN, or national ID block progression to KYC.",
+      "enforcement": "blocking",
+      "technicalRef": "BlacklistService.check(v=3)",
+      "version": "3.2",
+      "lastModified": "2026-03-15T09:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-COMP-AGE-002",
+      "category": "business_compliance",
+      "name": "Minimum subscriber age",
+      "summary": "Legal applicant age floor is 18 years at submission date; derived from verified ID document date of birth only.",
+      "enforcement": "blocking",
+      "technicalRef": "ageYears >= 18",
+      "version": "1.0",
+      "lastModified": "2025-11-01T08:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-DATA-UNIQ-001",
+      "category": "data_integrity",
+      "name": "ID uniqueness window",
+      "summary": "Same national ID may initiate at most one new CAF within a rolling 24-hour window (excludes correction flows linked to the same case ID).",
+      "enforcement": "blocking",
+      "technicalRef": "unique_window(id_hash, 24h)",
+      "version": "2.4",
+      "lastModified": "2026-04-02T14:20:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-DATA-FMT-002",
+      "category": "data_integrity",
+      "name": "Contact number normalization",
+      "summary": "Mobile numbers normalized to E.164 after validation against region-specific MSISDN regex; rejects ambiguous trunk prefixes.",
+      "enforcement": "warning",
+      "technicalRef": "regex: MSISDN_INTL_v4",
+      "version": "4.1",
+      "lastModified": "2026-01-18T11:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-DATA-FMT-003",
+      "category": "data_integrity",
+      "name": "National ID format",
+      "summary": "ID document numbers validated against configured national patterns before OCR payload is accepted into CRM.",
+      "enforcement": "blocking",
+      "technicalRef": "regex: NAT_ID_AF_v2",
+      "version": "2.0",
+      "lastModified": "2025-09-30T16:45:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-KYC-FACE-001",
+      "category": "kyc_security",
+      "name": "Mandatory face match",
+      "summary": "Critical flows (new SIM, broadband install, plan migration with hardware change) require live face match score ≥ vendor threshold; cannot be disabled per-template.",
+      "enforcement": "blocking",
+      "technicalRef": "FaceMatch.minScore=0.82",
+      "version": "5.0",
+      "lastModified": "2026-02-10T07:30:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-KYC-DOC-002",
+      "category": "kyc_security",
+      "name": "Document authenticity scan",
+      "summary": "Government ID images trigger passive authenticity API; tamper or fraud signals route to manual review queue.",
+      "enforcement": "blocking",
+      "technicalRef": "DocIntel.scan(provider=primary)",
+      "version": "1.8",
+      "lastModified": "2026-04-28T13:15:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-KYC-XCHECK-003",
+      "category": "kyc_security",
+      "name": "Cross-document consistency",
+      "summary": "Name and DOB extracted from ID must align with subscriber profile within fuzzy tolerances before approval.",
+      "enforcement": "warning",
+      "technicalRef": "cross_check(name,dob)",
+      "version": "1.2",
+      "lastModified": "2025-12-05T10:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-AUDIT-VER-001",
+      "category": "audit_lifecycle",
+      "name": "Template change audit trail",
+      "summary": "Every publish or rollback of a CAF template writes an immutable audit entry (actor, diff hash, timestamp) retained per compliance policy.",
+      "enforcement": "informational",
+      "technicalRef": "audit.store=years:10",
+      "version": "2.0",
+      "lastModified": "2026-03-01T08:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-AUDIT-RET-002",
+      "category": "audit_lifecycle",
+      "name": "CAF document retention",
+      "summary": "Submitted CAF electronic records and attachments retained for seven years from closure date unless superseded by law.",
+      "enforcement": "informational",
+      "technicalRef": "retention_years=7",
+      "version": "1.0",
+      "lastModified": "2024-06-20T12:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "GR-AUDIT-VER-003",
+      "category": "audit_lifecycle",
+      "name": "Rule registry versioning",
+      "summary": "Global rules carry semantic versions; breaking changes require CAB approval and staged rollout flag.",
+      "enforcement": "warning",
+      "technicalRef": "semver + feature_flags",
+      "version": "1.1",
+      "lastModified": "2026-05-04T09:00:00Z",
+      "isActive": true
+    }
+  ]
+}

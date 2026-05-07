@@ -15,6 +15,7 @@ import {
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from 'react-i18next';
+import { hasPermission, type User } from '../lib/auth';
 
 interface SidebarProps {
   activeTab: string;
@@ -22,17 +23,48 @@ interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onLogout: () => void;
+  user: User | null;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onLogout }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onLogout, user }: SidebarProps) {
   const { t } = useTranslation();
+  const isTemplatesActive = activeTab === 'templates' || activeTab === 'global-rules';
+  
   const menuItems = [
-    { id: 'dashboard', label: t('common.dashboard'), icon: LayoutDashboard },
-    { id: 'applications', label: t('common.applications'), icon: FileText },
-    { id: 'documents', label: t('common.documents'), icon: FolderOpen },
-    { id: 'templates', label: t('common.templates'), icon: Layers },
-    { id: 'audit', label: t('common.audit'), icon: ShieldCheck },
+    { 
+      id: 'dashboard', 
+      label: t('common.dashboard'), 
+      icon: LayoutDashboard,
+      permission: 'viewDashboard' as const
+    },
+    { 
+      id: 'applications', 
+      label: t('common.applications'), 
+      icon: FileText,
+      permission: 'viewCAF' as const
+    },
+    { 
+      id: 'documents', 
+      label: t('common.documents'), 
+      icon: FolderOpen,
+      permission: 'viewDocuments' as const
+    },
+    { 
+      id: 'templates', 
+      label: t('common.templates'), 
+      icon: Layers,
+      permission: 'viewTemplates' as const
+    },
+    { 
+      id: 'audit', 
+      label: t('common.audit'), 
+      icon: ShieldCheck,
+      permission: 'viewAuditQueue' as const
+    },
   ];
+
+  // Filter menu items based on user permissions
+  const visibleMenuItems = menuItems.filter(item => hasPermission(user, item.permission));
 
   return (
     <>
@@ -51,14 +83,12 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, on
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-8 flex items-center space-x-3">
-            <div className="relative w-8 h-8 flex items-center justify-center">
-              <div className="absolute inset-0 bg-blue-700 rotate-45 rounded-sm shadow-md shadow-blue-500/20 translate-x-[-2px] translate-y-[2px]" />
-              <div className="absolute inset-0 bg-cyan-500 rotate-45 rounded-sm opacity-80 translate-x-[2px] translate-y-[-2px]" />
-            </div>
-            <div>
-              <h1 className="text-slate-800 font-black tracking-tighter text-xl leading-tight italic">ATOMA</h1>
-            </div>
+          <div className="p-8 flex items-center justify-center">
+            <img 
+              src="/logo.svg" 
+              alt="ATOMA Logo" 
+              className="h-12 w-auto"
+            />
           </div>
 
           {/* Navigation */}
@@ -66,7 +96,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, on
             <div>
               <h3 className="px-3 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Management</h3>
               <ul className="space-y-1.5">
-                {menuItems.map((item) => (
+                {visibleMenuItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => {
@@ -75,16 +105,16 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, on
                     }}
                     className={cn(
                       "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group",
-                      activeTab === item.id 
-                        ? "bg-indigo-50 text-indigo-700" 
+                      (item.id === 'templates' ? isTemplatesActive : activeTab === item.id)
+                        ? "bg-indigo-50 text-indigo-700"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     )}
                   >
                     <item.icon size={16} className={cn(
-                      "transition-colors",
-                      activeTab === item.id ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"
+                      "transition-colors shrink-0",
+                      (item.id === 'templates' ? isTemplatesActive : activeTab === item.id) ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"
                     )} />
-                    <span>{item.label}</span>
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </button>
                 ))}
               </ul>
@@ -92,45 +122,54 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, on
 
             <div className="pt-4">
               <h3 className="px-3 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Action Center</h3>
-              <button 
-                onClick={() => setActiveTab('new-caf')}
-                className={cn(
-                  "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                  activeTab === 'new-caf' ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )}
-              >
-                <PlusCircle size={16} className={activeTab === 'new-caf' ? "text-indigo-600" : "text-slate-400"} />
-                <span>{t('common.new_caf')}</span>
-              </button>
+              {hasPermission(user, 'createCAF') && (
+                <button 
+                  onClick={() => setActiveTab('new-caf')}
+                  className={cn(
+                    "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    activeTab === 'new-caf' ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  )}
+                >
+                  <PlusCircle size={16} className={cn(
+                    "shrink-0",
+                    activeTab === 'new-caf' ? "text-indigo-600" : "text-slate-400"
+                  )} />
+                  <span className="whitespace-nowrap">{t('common.new_caf')}</span>
+                </button>
+              )}
             </div>
+
+            {hasPermission(user, 'manageUsers') && (
+              <div className="pt-4">
+                <h3 className="px-3 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('common.system')}</h3>
+                <button 
+                  onClick={() => {
+                    setActiveTab('system-management');
+                    if (window.innerWidth < 1024) setIsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group",
+                    activeTab === 'system-management' ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  )}
+                >
+                  <Settings size={16} className={cn(
+                    "transition-colors shrink-0",
+                    activeTab === 'system-management' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"
+                  )} />
+                  <span className="whitespace-nowrap">{t('common.system_management')}</span>
+                </button>
+              </div>
+            )}
           </nav>
 
-          {/* Daily Quota Card */}
-          <div className="p-6 mt-auto">
-            <div className="p-4 bg-slate-900 rounded-xl text-white shadow-xl shadow-slate-900/10 mb-6">
-              <div className="flex justify-between items-center mb-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Quota</p>
-                <span className="text-[10px] py-0.5 px-1.5 bg-indigo-500/20 text-indigo-400 rounded-md font-bold">84%</span>
-              </div>
-              <div className="flex justify-between items-baseline mb-2">
-                <span className="text-xl font-bold">420</span>
-                <span className="text-[10px] text-slate-400 font-medium">/ 500 CAF</span>
-              </div>
-              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: "84%" }}
-                  className="bg-indigo-500 h-full"
-                />
-              </div>
-            </div>
-
-            <button 
+          {/* Logout Button */}
+          <div className="p-6 border-t border-slate-200">
+            <button
               onClick={onLogout}
-              className="w-full flex items-center justify-center space-x-3 px-3 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
+              className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all group"
             >
-              <LogOut size={16} />
-              <span>{t('common.logout')}</span>
+              <LogOut size={16} className="text-rose-500 group-hover:text-rose-600 transition-colors shrink-0" />
+              <span className="whitespace-nowrap">{t('common.logout')}</span>
             </button>
           </div>
         </div>

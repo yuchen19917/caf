@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Shield, 
   Lock, 
   User, 
-  ChevronRight, 
-  Globe, 
-  Cpu,
-  Fingerprint
+  Shield,
+  Globe,
+  AlertCircle,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
 import { useTranslation } from 'react-i18next';
+import { authenticateUser, getRoleDisplayName, getRoleColor } from '../lib/auth';
 
 interface LoginProps {
   onLogin: (user: any) => void;
@@ -18,9 +16,28 @@ interface LoginProps {
 
 export function Login({ onLogin }: LoginProps) {
   const { t, i18n } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
+  const [captcha, setCaptcha] = useState('');
+  const [captchaCode, setCaptchaCode] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Generate random captcha
+  const generateCaptcha = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaCode(code);
+    // Auto-fill captcha for convenience
+    setCaptcha(code);
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'en' ? 'zh' : 'en';
@@ -29,142 +46,170 @@ export function Login({ onLogin }: LoginProps) {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    
+    // Validate captcha
+    if (captcha.toUpperCase() !== captchaCode) {
+      setError(i18n.language === 'en' ? 'Invalid captcha code' : '验证码错误');
+      generateCaptcha();
+      return;
+    }
+    
     setIsAuthenticating(true);
     
-    // Simulate secure enterprise authentication
+    // Simulate authentication delay
     setTimeout(() => {
-      setIsAuthenticating(false);
-      onLogin({ 
-        id: 'U992', 
-        name: 'Administrator', 
-        role: 'Super Admin',
-        email: email || 'admin@atoma.cloud'
-      });
-    }, 2000);
+      const user = authenticateUser(username, password);
+      
+      if (user) {
+        setIsAuthenticating(false);
+        onLogin(user);
+      } else {
+        setIsAuthenticating(false);
+        setError(i18n.language === 'en' ? 'Invalid username or password' : '用户名或密码错误');
+        generateCaptcha();
+      }
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[120px]" />
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6 font-sans">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-md"
       >
         {/* Logo Section */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-4">
-             <div className="relative w-12 h-12 flex items-center justify-center">
-                <div className="absolute inset-0 bg-blue-700 rotate-45 rounded-md shadow-2xl shadow-blue-500/40 translate-x-[-4px] translate-y-[4px]" />
-                <div className="absolute inset-0 bg-cyan-500 rotate-45 rounded-md opacity-80 translate-x-[4px] translate-y-[-4px]" />
-             </div>
-             <h1 className="text-5xl font-black text-white tracking-tighter italic">ATOMA</h1>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center mb-3">
+             <img 
+               src="/logo.svg" 
+               alt="ATOMA Logo" 
+               className="h-20 w-auto"
+             />
           </div>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em] mt-2">CAF Management Gateway</p>
+          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">CAF Management System</p>
         </div>
 
-        <div className="bg-white rounded-[2.5rem] shadow-2xl p-10 relative overflow-hidden border border-white/10">
-          {/* Internal Loading Overlay */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+          {/* Loading Overlay */}
           {isAuthenticating && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center space-y-4 animate-in fade-in duration-300">
-               <div className="relative w-16 h-16">
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center space-y-3 rounded-2xl">
+               <div className="relative w-12 h-12">
                   <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
                   <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
                </div>
-               <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest animate-pulse">Establishing Secure Socket...</p>
+               <p className="text-xs font-semibold text-indigo-600">
+                 {i18n.language === 'en' ? 'Authenticating...' : '正在验证...'}
+               </p>
             </div>
           )}
 
-          <div className="space-y-8">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <h2 className="text-xl font-bold text-slate-800 tracking-tight">{t('login.title')}</h2>
-                <p className="text-slate-400 text-xs font-medium max-w-[200px]">{t('login.subtitle')}</p>
-              </div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-bold text-slate-800">{t('login.title')}</h2>
               <button 
                 type="button"
                 onClick={toggleLanguage}
-                className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center gap-2"
+                className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5"
               >
-                <Globe size={12} className="text-indigo-600" />
-                {i18n.language === 'en' ? 'English' : '中文'}
+                <Globe size={12} />
+                {i18n.language === 'en' ? 'EN' : '中文'}
               </button>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('login.identifier')}</label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={18} />
-                    <input 
-                      required
-                      type="text" 
-                      placeholder="e.g. admin@atoma.cloud"
-                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all text-slate-700"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
+            {/* Error Message */}
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2"
+              >
+                <AlertCircle size={16} className="text-rose-600 shrink-0" />
+                <p className="text-xs text-rose-700 font-medium">{error}</p>
+              </motion.div>
+            )}
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('login.secret')}</label>
-                    <button type="button" className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest hover:underline">{t('login.reset')}</button>
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={18} />
-                    <input 
-                      required
-                      type="password" 
-                      placeholder="••••••••"
-                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all text-slate-700"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
+            <form onSubmit={handleLogin} className="space-y-4">
+              {/* Username */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-600">
+                  {i18n.language === 'en' ? 'Username' : '用户名'}
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    required
+                    type="text" 
+                    placeholder={i18n.language === 'en' ? 'Enter username' : '请输入用户名'}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 py-2">
-                <div className="flex items-center justify-center w-8 h-8 bg-emerald-50 rounded-lg text-emerald-600">
-                  <Shield size={16} />
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-600">
+                  {i18n.language === 'en' ? 'Password' : '密码'}
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    required
+                    type="password" 
+                    placeholder={i18n.language === 'en' ? 'Enter password' : '请输入密码'}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
-                <p className="text-[9px] font-bold text-slate-500 uppercase leading-relaxed tracking-wider">
-                  Session protected by RSA-4096 <br/> & Multi-Factor Biometric Layer
-                </p>
+              </div>
+
+              {/* Captcha */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-600">
+                  {i18n.language === 'en' ? 'Captcha' : '验证码'}
+                </label>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      required
+                      type="text" 
+                      placeholder={i18n.language === 'en' ? 'Enter captcha' : '请输入验证码'}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      value={captcha}
+                      onChange={(e) => setCaptcha(e.target.value)}
+                      maxLength={4}
+                    />
+                  </div>
+                  <div 
+                    className="w-28 h-[46px] bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center cursor-pointer select-none hover:from-indigo-600 hover:to-indigo-700 transition-all active:scale-95"
+                    onClick={generateCaptcha}
+                    title={i18n.language === 'en' ? 'Click to refresh' : '点击刷新'}
+                  >
+                    <span className="text-white font-bold text-xl tracking-widest" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
+                      {captchaCode}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <button 
                 type="submit"
-                className="w-full group flex items-center justify-between bg-indigo-600 text-white p-2 rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-[0.98] mt-6"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-white/10 rounded-xl">
-                   <Fingerprint size={20} />
-                </div>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] -ml-4">{t('login.authorize')}</span>
-                <div className="flex items-center justify-center w-12 h-12 bg-white/10 rounded-xl group-hover:translate-x-1 transition-transform">
-                   <ChevronRight size={18} />
-                </div>
+                {t('login.authorize')}
               </button>
             </form>
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-center gap-6 opacity-40">
-           <div className="flex items-center gap-2">
-              <Globe size={14} className="text-white" />
-              <span className="text-[9px] font-bold text-white uppercase tracking-widest">Global Node V4.2</span>
-           </div>
-           <div className="w-1 h-1 bg-white rounded-full" />
-           <span className="text-[9px] font-bold text-white uppercase tracking-widest">Secure Cloud Ops</span>
-        </div>
+        <p className="text-center text-xs text-slate-400 mt-6">
+          © 2026 ATOMA Telecom. All rights reserved.
+        </p>
       </motion.div>
     </div>
   );

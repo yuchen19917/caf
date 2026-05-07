@@ -1,0 +1,213 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.join(__dirname, '..');
+
+/** Individual prepaid CAF — table layout, CRM placeholders {{...}} */
+const INDIVIDUAL_CAF_BLUEPRINT = `
+<div style="font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:#0f172a;line-height:1.45;">
+  <p style="text-align:center;margin:0 0 4px;font-size:15px;font-weight:800;">Customer Application Form（个人预付费）</p>
+  <p style="text-align:center;margin:0 0 18px;font-size:11px;color:#64748b;">SIM Registration · Prepaid Standard · Placeholders bind at submission</p>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;margin-top:4px;">1. 客户名称 · Customer name</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;">法定姓名 / Legal name</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{fullName}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;">2. 证件信息 · Identity document</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;">证件类型 / ID type</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{idType}}</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;background:#f8fafc;font-weight:600;">证件号码 / ID number</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{idNumber}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;">3. 居住地址 · Residential address</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;vertical-align:top;">完整地址 / Full address</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;vertical-align:top;">{{address}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;">4. 联系方式 · Contact</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;">手机号码 / Mobile</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{contactNumber}}</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;background:#f8fafc;font-weight:600;">电子邮箱 / E-mail</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{email}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;">5. 账单地址 · Billing address</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;vertical-align:top;">账单邮寄或登记地址（可与居住地址不同）/ Billing address</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;vertical-align:top;">{{billingAddress}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;">6. 服务详情 · Service details</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;">资费计划 / Plan name</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{planName}}</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;background:#f8fafc;font-weight:600;">业务类型 / Service type</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{serviceType}}</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;background:#f8fafc;font-weight:600;">交付方式 / Delivery (SIM / eSIM / etc.)</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{serviceDelivery}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#e5e7eb;border:1px solid #94a3b8;padding:6px 10px;font-weight:700;font-size:12px;">7. 费用信息 · Charges &amp; billing</div>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;font-size:12px;margin-bottom:12px;">
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;width:32%;background:#f8fafc;font-weight:600;">一次性开户费 / Activation</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{activationFee}}</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;background:#f8fafc;font-weight:600;">周期资费 / Recurring charge</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{monthlyFee}}</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:8px;background:#f8fafc;font-weight:600;">账单周期 / Billing cycle</td>
+      <td style="border:1px solid #cbd5e1;padding:8px;">{{billingCycle}}</td>
+    </tr>
+  </table>
+
+  <div style="background:#f1f5f9;border:1px solid #cbd5e1;padding:10px 12px;font-size:12px;margin-top:8px;">
+    <p style="margin:0 0 8px;font-weight:700;">声明 · Declaration</p>
+    <p style="margin:0;">本人确认上述信息真实有效，并与所持证件一致；已阅读并同意现行资费与入网规则。签署日期：{{submissionDate}} &nbsp;|&nbsp; 客户签字：____________________</p>
+    <p style="margin:8px 0 0;font-size:11px;color:#64748b;">Subscriber acknowledgement bound to <strong>{{fullName}}</strong> / ID <strong>{{idNumber}}</strong></p>
+  </div>
+</div>
+`.trim();
+
+const templates = [
+  {
+    id: 'TPL-IND-PRE-001',
+    name: 'Individual Prepaid Basic',
+    description:
+      'Structured individual CAF blueprint: customer name, ID, residential & billing address, contact, service plan, and charges — table layout with CRM placeholders.',
+    customerType: 'Individual',
+    businessType: 'SIM Registration',
+    channel: 'Direct',
+    product: 'Prepaid Standard',
+    isActive: true,
+    lastModified: '2024-04-01T08:00:00Z',
+    fields: [
+      { id: 'f1', label: 'Full Name', type: 'text', required: true },
+      { id: 'f2', label: 'ID Type', type: 'text', required: true },
+      { id: 'f3', label: 'ID Number', type: 'text', required: true },
+      { id: 'f4', label: 'Residential Address', type: 'textarea', required: true },
+      { id: 'f5', label: 'Contact Number', type: 'text', required: true },
+      { id: 'f6', label: 'Email', type: 'text', required: false },
+      { id: 'f7', label: 'Billing Address', type: 'textarea', required: false },
+      { id: 'f8', label: 'Plan Name', type: 'text', required: true },
+      { id: 'f9', label: 'Service Type', type: 'text', required: true },
+      { id: 'f10', label: 'Service Delivery', type: 'text', required: false },
+      { id: 'f11', label: 'Activation Fee', type: 'text', required: false },
+      { id: 'f12', label: 'Monthly Fee', type: 'text', required: false },
+      { id: 'f13', label: 'Billing Cycle', type: 'text', required: false },
+    ],
+    termsAndConditions: INDIVIDUAL_CAF_BLUEPRINT,
+  },
+  {
+    id: 'TPL-CORP-POST-002',
+    name: 'Corporate Postpaid Enterprise',
+    description: 'Extended template for corporate enterprise solution accounts.',
+    customerType: 'Corporate',
+    businessType: 'Business Solution',
+    channel: 'Direct',
+    product: 'Enterprise Unbound',
+    isActive: true,
+    lastModified: '2024-04-10T14:30:00Z',
+    fields: [
+      { id: 'c1', label: 'Company Name', type: 'text', required: true },
+      { id: 'c2', label: 'Tax ID (TIN)', type: 'text', required: true },
+      { id: 'c3', label: 'Static IP Required', type: 'checkbox', required: false },
+    ],
+    termsAndConditions: `
+      <h2>Corporate Terms</h2>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+        <tr>
+          <th style="border: 1px solid black; padding: 8px;">Registration No</th>
+          <td style="border: 1px solid black; padding: 8px;">As per License</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid black; padding: 8px;">Business Category</th>
+          <td style="border: 1px solid black; padding: 8px;">Tier 1 Enterprise</td>
+        </tr>
+      </table>
+      <p>Authorized Signatory must provide POA and valid ID evidence.</p>
+    `.trim(),
+  },
+  {
+    id: 'TPL-PCCARE-CAF-001',
+    name: 'PC CARE Customer Application Form (CAF)',
+    description:
+      'Airway broadband CAF (SME/ISP/OSP/Corporate/Lease Line) with grid-style fields, service/financial blocks, document checklist, and customer acceptance — logo from image/logo.svg.',
+    customerType: 'Corporate',
+    businessType: 'Broadband / Lease Line',
+    channel: 'Direct',
+    product: 'Fixed Wi-Fi / FTTX / DIA-ILL',
+    isActive: true,
+    lastModified: '2026-05-01T10:00:00Z',
+    isFullPageTerms: true,
+    fields: [
+      { id: 'pc1', label: 'Subscriber Name', type: 'text', required: true },
+      { id: 'pc2', label: 'Licence Details (ISP/OSP)', type: 'text', required: false },
+      { id: 'pc3', label: 'Connection Installation Address', type: 'textarea', required: true },
+      { id: 'pc4', label: 'Mobile No. (Registered)', type: 'text', required: true },
+      { id: 'pc5', label: 'Email id (Registered)', type: 'text', required: true },
+      { id: 'pc6', label: 'Authorised Signatory', type: 'text', required: true },
+      { id: 'pc7', label: 'Technical Coordinator', type: 'text', required: false },
+      { id: 'pc8', label: 'Billing Coordinator', type: 'text', required: false },
+      {
+        id: 'pc9',
+        label: 'Required Service',
+        type: 'select',
+        required: true,
+        options: ['Fixed Wi-Fi Broadband', 'FTTX (FiberOne)', 'Internet Leaseline (DIA-ILL)'],
+      },
+      {
+        id: 'pc10',
+        label: 'Subscriber Type',
+        type: 'select',
+        required: true,
+        options: ['Prepaid', 'Post Pay'],
+      },
+      {
+        id: 'pc11',
+        label: 'Billing Cycle',
+        type: 'select',
+        required: true,
+        options: ['Monthly', 'Quarterly', 'Half Yearly', 'Yearly'],
+      },
+      { id: 'pc12', label: 'Static Public IP', type: 'checkbox', required: false },
+    ],
+    termsAndConditions: '__BUILD_PCCARE_CAF__',
+  },
+];
+
+const outDir = path.join(root, 'data');
+fs.mkdirSync(outDir, { recursive: true });
+const outPath = path.join(outDir, 'template_data.json');
+fs.writeFileSync(outPath, JSON.stringify({ templates }, null, 2), 'utf8');
+console.log('Wrote', outPath);

@@ -20,6 +20,8 @@ export interface CAFTemplate {
   lastModified: string;
   isActive: boolean;
   termsAndConditions?: string;
+  /** Rich-text terms are a complete printable CAF page (preview skips default chrome). */
+  isFullPageTerms?: boolean;
 }
 
 export interface Document {
@@ -29,6 +31,7 @@ export interface Document {
   uploadDate: string;
   status: 'Verified' | 'Unverified' | 'Rejected';
   url?: string;
+  fileId?: string; // Reference to IndexedDB file
 }
 
 export interface CustomerApplicationForm {
@@ -45,6 +48,8 @@ export interface CustomerApplicationForm {
   status: CAFStatus;
   submissionDate: string;
   documents: Document[];
+  createdBy?: string; // User ID of the creator
+  createdByUsername?: string; // Username of the creator
   corporateDetails?: {
     companyRegNo: string;
     taxId: string;
@@ -59,4 +64,26 @@ export interface Stats {
   totalApproved: number;
   totalRejected: number;
   totalDocs: number;
+}
+
+export type GlobalRuleCategory =
+  | 'business_compliance'
+  | 'data_integrity'
+  | 'kyc_security'
+  | 'audit_lifecycle';
+
+export type GlobalRuleEnforcement = 'blocking' | 'warning' | 'informational';
+
+/** Cross-template compliance / validation rules (mock registry). */
+export interface GlobalRule {
+  id: string;
+  category: GlobalRuleCategory;
+  name: string;
+  summary: string;
+  enforcement: GlobalRuleEnforcement;
+  /** Optional technical hint (regex pattern id, API name, retention years, etc.) */
+  technicalRef?: string;
+  version: string;
+  lastModified: string;
+  isActive: boolean;
 }

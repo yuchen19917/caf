@@ -1,4 +1,4 @@
-import { CustomerApplicationForm, Stats, CAFTemplate } from './types';
+import { CustomerApplicationForm, Stats } from './types';
 
 export const MOCK_CAFS: CustomerApplicationForm[] = [
   {
@@ -98,62 +98,3 @@ export const MOCK_STATS: Stats = {
   totalRejected: 12,
   totalDocs: 3500
 };
-
-export const MOCK_TEMPLATES: CAFTemplate[] = [
-  {
-    id: 'TPL-IND-PRE-001',
-    name: 'Individual Prepaid Basic',
-    description: 'Standard template for individual prepaid SIM registration.',
-    customerType: 'Individual',
-    businessType: 'SIM Registration',
-    channel: 'Direct',
-    product: 'Prepaid Standard',
-    isActive: true,
-    lastModified: '2024-04-01T08:00:00Z',
-    fields: [
-      { id: 'f1', label: 'Full Name', type: 'text', required: true },
-      { id: 'f2', label: 'ID Number', type: 'text', required: true },
-      { id: 'f3', label: 'Contact Number', type: 'text', required: true },
-    ],
-    termsAndConditions: `
-      <h2>General Information</h2>
-      <p>The subscriber agrees to the following terms for the ATOMA Mobile service.</p>
-      <ul>
-        <li>Subscriber Name must match the provided identity document.</li>
-        <li>Service is subject to regulatory verification.</li>
-      </ul>
-      <h2>Declaration</h2>
-      <p>I hereby declare that all information submitted by me is correct, true and valid.</p>
-    `
-  },
-  {
-    id: 'TPL-CORP-POST-002',
-    name: 'Corporate Postpaid Enterprise',
-    description: 'Extended template for corporate enterprise solution accounts.',
-    customerType: 'Corporate',
-    businessType: 'Business Solution',
-    channel: 'Direct',
-    product: 'Enterprise Unbound',
-    isActive: true,
-    lastModified: '2024-04-10T14:30:00Z',
-    fields: [
-      { id: 'c1', label: 'Company Name', type: 'text', required: true },
-      { id: 'c2', label: 'Tax ID (TIN)', type: 'text', required: true },
-      { id: 'c3', label: 'Static IP Required', type: 'checkbox', required: false },
-    ],
-    termsAndConditions: `
-      <h2>Corporate Terms</h2>
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
-        <tr>
-          <th style="border: 1px solid black; padding: 8px;">Registration No</th>
-          <td style="border: 1px solid black; padding: 8px;">As per License</td>
-        </tr>
-        <tr>
-          <th style="border: 1px solid black; padding: 8px;">Business Category</th>
-          <td style="border: 1px solid black; padding: 8px;">Tier 1 Enterprise</td>
-        </tr>
-      </table>
-      <p>Authorized Signatory must provide POA and valid ID evidence.</p>
-    `
-  }
-];
