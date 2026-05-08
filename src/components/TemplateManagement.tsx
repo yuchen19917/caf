@@ -27,6 +27,7 @@ import {
   Mail,
   Package,
   CreditCard,
+  Download,
 } from 'lucide-react';
 import { useTemplates } from '../hooks/useTemplates';
 import { cn } from '../lib/utils';
@@ -151,6 +152,55 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
         setIsModalOpen(false);
         setIsEditing(false);
       }
+    }
+  };
+
+  const handleDownloadTemplate = (tpl: CAFTemplate) => {
+    try {
+      // Create a clean copy of the template for export
+      const exportData = {
+        id: tpl.id,
+        name: tpl.name,
+        description: tpl.description,
+        customerType: tpl.customerType,
+        businessType: tpl.businessType,
+        channel: tpl.channel,
+        product: tpl.product,
+        isActive: tpl.isActive,
+        lastModified: tpl.lastModified,
+        fields: tpl.fields,
+        termsAndConditions: tpl.termsAndConditions,
+        isFullPageTerms: tpl.isFullPageTerms,
+      };
+
+      // Convert to JSON string with pretty formatting
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      // Create a Blob from the JSON string
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename: template-name-id.json
+      const filename = `${tpl.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${tpl.id}.json`;
+      link.download = filename;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      // Optional: Show success message
+      console.log(`Template "${tpl.name}" downloaded successfully as ${filename}`);
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      alert('Failed to download template. Please try again.');
     }
   };
 
@@ -434,6 +484,13 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                       title={t('templates_page.title_view_blueprint')}
                     >
                       <Eye size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDownloadTemplate(tpl)}
+                      className="p-2 text-slate-300 hover:text-emerald-600 transition-colors" 
+                      title="Download Template"
+                    >
+                      <Download size={16} />
                     </button>
                     <button 
                       onClick={() => handleOpenEdit(tpl)}

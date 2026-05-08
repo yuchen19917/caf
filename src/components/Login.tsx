@@ -13,8 +13,8 @@ interface LoginProps {
 
 export function Login({ onLogin }: LoginProps) {
   const { t, i18n } = useTranslation();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
   const [captchaCode, setCaptchaCode] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
   const [error, setError] = useState('');
@@ -74,12 +74,12 @@ export function Login({ onLogin }: LoginProps) {
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-5/12 bg-slate-900 flex-col justify-between p-10">
         <div>
-          <img src="/logo.svg" alt="ATOMA" className="h-10 w-auto mb-10 opacity-90" />
+          <img src="/logo.svg" alt="ATOMA" className="h-24 w-auto mb-10 opacity-90" />
           <h1 className="text-3xl font-bold text-white leading-tight">
             ATOMA Afghanistan
           </h1>
           <p className="text-slate-400 text-sm mt-2 leading-relaxed">
-            Customer Application Form<br />Management System
+            Customer Application Form Management System
           </p>
           <div className="mt-10 space-y-3">
             {[
@@ -103,7 +103,7 @@ export function Login({ onLogin }: LoginProps) {
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 px-6">
         {/* Mobile logo */}
         <div className="lg:hidden mb-8 text-center">
-          <img src="/logo.svg" alt="ATOMA" className="h-8 w-auto mx-auto mb-2" />
+          <img src="/logo.svg" alt="ATOMA" className="h-18 w-auto mx-auto mb-2" />
           <p className="text-sm font-semibold text-gray-700">ATOMA CAF System</p>
         </div>
 
