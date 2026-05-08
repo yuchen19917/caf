@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Lock, 
-  User, 
-  Shield,
-  Globe,
-  AlertCircle,
-} from 'lucide-react';
-import { motion } from 'motion/react';
+import { Lock, User, Shield, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { authenticateUser, getRoleDisplayName, getRoleColor } from '../lib/auth';
+import { authenticateUser } from '../lib/auth';
+
+function generateCaptcha() {
+  return Math.random().toString(36).substring(2, 7).toUpperCase();
+}
 
 interface LoginProps {
   onLogin: (user: any) => void;
@@ -16,201 +13,205 @@ interface LoginProps {
 
 export function Login({ onLogin }: LoginProps) {
   const { t, i18n } = useTranslation();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
-  const [captcha, setCaptcha] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [captchaCode, setCaptchaCode] = useState('');
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Generate random captcha
-  const generateCaptcha = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setCaptchaCode(code);
-    // Auto-fill captcha for convenience
-    setCaptcha(code);
-  };
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    generateCaptcha();
+    const code = generateCaptcha();
+    setCaptchaCode(code);
+    setCaptchaInput(code); // pre-filled for demo convenience
   }, []);
 
-  const toggleLanguage = () => {
-    const nextLang = i18n.language === 'en' ? 'zh' : 'en';
-    i18n.changeLanguage(nextLang);
+  const refreshCaptcha = () => {
+    const code = generateCaptcha();
+    setCaptchaCode(code);
+    setCaptchaInput('');
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const toggleLanguage = () => {
+    const langs = ['en', 'dar', 'zh'];
+    const idx = langs.indexOf(i18n.language);
+    const nextLang = langs[(idx + 1) % langs.length];
+    i18n.changeLanguage(nextLang);
+    document.documentElement.dir = nextLang === 'dar' ? 'rtl' : 'ltr';
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    
-    // Validate captcha
-    if (captcha.toUpperCase() !== captchaCode) {
-      setError(i18n.language === 'en' ? 'Invalid captcha code' : '验证码错误');
-      generateCaptcha();
+    setError('');
+
+    if (!username || !password) {
+      setError(t('login.error_empty'));
       return;
     }
-    
-    setIsAuthenticating(true);
-    
-    // Simulate authentication delay
-    setTimeout(() => {
-      const user = authenticateUser(username, password);
-      
-      if (user) {
-        setIsAuthenticating(false);
-        onLogin(user);
-      } else {
-        setIsAuthenticating(false);
-        setError(i18n.language === 'en' ? 'Invalid username or password' : '用户名或密码错误');
-        generateCaptcha();
-      }
-    }, 1500);
+    if (captchaInput.toUpperCase() !== captchaCode.toUpperCase()) {
+      setError(t('login.error_captcha'));
+      refreshCaptcha();
+      return;
+    }
+
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 900));
+    const user = authenticateUser(username, password);
+    setLoading(false);
+
+    if (user) {
+      onLogin(user);
+    } else {
+      setError(t('login.error_invalid'));
+      refreshCaptcha();
+    }
   };
 
+  const langLabel = i18n.language === 'en' ? 'EN' : i18n.language === 'dar' ? 'دری' : 'ZH';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6 font-sans">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        {/* Logo Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center mb-3">
-             <img 
-               src="/logo.svg" 
-               alt="ATOMA Logo" 
-               className="h-20 w-auto"
-             />
+    <div className="min-h-screen flex">
+      {/* Left branding panel */}
+      <div className="hidden lg:flex lg:w-5/12 bg-slate-900 flex-col justify-between p-10">
+        <div>
+          <img src="/logo.svg" alt="ATOMA" className="h-10 w-auto mb-10 opacity-90" />
+          <h1 className="text-3xl font-bold text-white leading-tight">
+            ATOMA Afghanistan
+          </h1>
+          <p className="text-slate-400 text-sm mt-2 leading-relaxed">
+            Customer Application Form<br />Management System
+          </p>
+          <div className="mt-10 space-y-3">
+            {[
+              'NTRA-compliant SIM & service registration',
+              'Multi-role workflow: Agent → Auditor → Admin',
+              'Real-time CRM, BSS & provisioning integration',
+            ].map(item => (
+              <div key={item} className="flex items-start gap-3">
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5 flex-shrink-0" />
+                <p className="text-slate-300 text-sm">{item}</p>
+              </div>
+            ))}
           </div>
-          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">CAF Management System</p>
+        </div>
+        <p className="text-slate-600 text-xs">
+          © 2026 ATOMA Telecom · Regulatory Grade System · v3.0
+        </p>
+      </div>
+
+      {/* Right login panel */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 px-6">
+        {/* Mobile logo */}
+        <div className="lg:hidden mb-8 text-center">
+          <img src="/logo.svg" alt="ATOMA" className="h-8 w-auto mx-auto mb-2" />
+          <p className="text-sm font-semibold text-gray-700">ATOMA CAF System</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
-          {/* Loading Overlay */}
-          {isAuthenticating && (
-            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center space-y-3 rounded-2xl">
-               <div className="relative w-12 h-12">
-                  <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
-                  <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
-               </div>
-               <p className="text-xs font-semibold text-indigo-600">
-                 {i18n.language === 'en' ? 'Authenticating...' : '正在验证...'}
-               </p>
+        <div className="w-full max-w-sm">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">{t('login.sign_in_heading')}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{t('login.credentials_subtitle')}</p>
+              </div>
+              <Shield size={18} className="text-blue-600 opacity-60" />
             </div>
-          )}
-
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">{t('login.title')}</h2>
-              <button 
-                type="button"
-                onClick={toggleLanguage}
-                className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5"
-              >
-                <Globe size={12} />
-                {i18n.language === 'en' ? 'EN' : '中文'}
-              </button>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2"
-              >
-                <AlertCircle size={16} className="text-rose-600 shrink-0" />
-                <p className="text-xs text-rose-700 font-medium">{error}</p>
-              </motion.div>
-            )}
 
             <form onSubmit={handleLogin} className="space-y-4">
               {/* Username */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-600">
-                  {i18n.language === 'en' ? 'Username' : '用户名'}
-                </label>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{t('login.username')}</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input 
-                    required
-                    type="text" 
-                    placeholder={i18n.language === 'en' ? 'Enter username' : '请输入用户名'}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={e => setUsername(e.target.value)}
+                    placeholder={t('login.username_placeholder')}
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                    autoComplete="username"
                   />
                 </div>
               </div>
 
               {/* Password */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-600">
-                  {i18n.language === 'en' ? 'Password' : '密码'}
-                </label>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{t('login.password')}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input 
-                    required
-                    type="password" 
-                    placeholder={i18n.language === 'en' ? 'Enter password' : '请输入密码'}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                    autoComplete="current-password"
                   />
                 </div>
               </div>
 
               {/* Captcha */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-600">
-                  {i18n.language === 'en' ? 'Captcha' : '验证码'}
-                </label>
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      required
-                      type="text" 
-                      placeholder={i18n.language === 'en' ? 'Enter captcha' : '请输入验证码'}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      value={captcha}
-                      onChange={(e) => setCaptcha(e.target.value)}
-                      maxLength={4}
-                    />
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{t('login.security_code')}</label>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-gray-100 border border-gray-300 rounded-md px-3 py-2 flex items-center justify-center">
+                    <span className="font-mono font-bold text-gray-700 tracking-widest text-sm select-none">{captchaCode}</span>
                   </div>
-                  <div 
-                    className="w-28 h-[46px] bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center cursor-pointer select-none hover:from-indigo-600 hover:to-indigo-700 transition-all active:scale-95"
-                    onClick={generateCaptcha}
-                    title={i18n.language === 'en' ? 'Click to refresh' : '点击刷新'}
+                  <button
+                    type="button"
+                    onClick={refreshCaptcha}
+                    className="px-3 py-2 border border-gray-300 rounded-md text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                   >
-                    <span className="text-white font-bold text-xl tracking-widest" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-                      {captchaCode}
-                    </span>
-                  </div>
+                    {t('login.refresh')}
+                  </button>
                 </div>
+                <input
+                  type="text"
+                  value={captchaInput}
+                  onChange={e => setCaptchaInput(e.target.value)}
+                  placeholder={t('login.captcha_placeholder')}
+                  className="w-full mt-2 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
               </div>
 
-              <button 
+              {/* Error */}
+              {error && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>
+              )}
+
+              {/* Submit */}
+              <button
                 type="submit"
-                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-[0.98] mt-6"
+                disabled={loading}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-md transition-colors"
               >
-                {t('login.authorize')}
+                {loading ? t('login.signing_in') : t('login.sign_in_btn')}
               </button>
             </form>
           </div>
-        </div>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
-          © 2026 ATOMA Telecom. All rights reserved.
-        </p>
-      </motion.div>
+          {/* Demo credentials */}
+          <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('login.demo_credentials')}</p>
+            <div className="space-y-1 text-xs text-gray-600 font-mono">
+              <p>admin / admin123 <span className="text-gray-400 font-sans">(Administrator)</span></p>
+              <p>agent / agent123 <span className="text-gray-400 font-sans">(Agent)</span></p>
+              <p>auditor / auditor123 <span className="text-gray-400 font-sans">(Auditor)</span></p>
+            </div>
+          </div>
+
+          {/* Language toggle */}
+          <div className="mt-3 flex justify-center">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Globe size={12} />
+              {langLabel} — {t('common.language')}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

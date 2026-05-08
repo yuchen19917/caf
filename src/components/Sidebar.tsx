@@ -1,21 +1,12 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  FolderOpen, 
-  ShieldCheck, 
-  Settings, 
-  Menu, 
-  X,
-  Smartphone,
-  LogOut,
-  PlusCircle,
-  Layers
+import {
+  LayoutDashboard, FileText, FolderOpen, ShieldCheck,
+  Settings, X, LogOut, PlusCircle, Layers, Network,
+  ShieldAlert, MapPin, Briefcase
 } from 'lucide-react';
-import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useTranslation } from 'react-i18next';
-import { hasPermission, type User } from '../lib/auth';
+import { hasPermission, type User, type Permission } from '../lib/auth';
 
 interface SidebarProps {
   activeTab: string;
@@ -26,161 +17,188 @@ interface SidebarProps {
   user: User | null;
 }
 
+interface NavItem {
+  id: string;
+  labelKey: string;
+  icon: React.ElementType;
+  permission: keyof Permission;
+}
+
+interface NavGroup {
+  sectionKey: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    sectionKey: 'sidebar.section_operations',
+    items: [
+      { id: 'dashboard',    labelKey: 'common.dashboard',    icon: LayoutDashboard, permission: 'viewDashboard' },
+      { id: 'applications', labelKey: 'common.applications', icon: FileText,        permission: 'viewCAF'       },
+    ],
+  },
+  {
+    sectionKey: 'sidebar.section_documents',
+    items: [
+      { id: 'documents',  labelKey: 'common.documents',  icon: FolderOpen, permission: 'viewDocuments'  },
+      { id: 'templates',  labelKey: 'common.templates',  icon: Layers,     permission: 'viewTemplates'  },
+    ],
+  },
+  {
+    sectionKey: 'sidebar.section_regulatory',
+    items: [
+      { id: 'audit',       labelKey: 'common.audit',       icon: ShieldCheck, permission: 'viewAuditQueue' },
+      { id: 'compliance',  labelKey: 'common.compliance',  icon: ShieldAlert, permission: 'viewCompliance' },
+    ],
+  },
+  {
+    sectionKey: 'sidebar.section_network',
+    items: [
+      { id: 'site-registry', labelKey: 'common.site_registry', icon: MapPin,   permission: 'viewSiteRegistry' },
+      { id: 'contracts',     labelKey: 'common.contracts',     icon: Briefcase, permission: 'viewContracts'   },
+      { id: 'integrations',  labelKey: 'common.integrations',  icon: Network,   permission: 'viewIntegrations' },
+    ],
+  },
+];
+
 export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onLogout, user }: SidebarProps) {
   const { t } = useTranslation();
   const isTemplatesActive = activeTab === 'templates' || activeTab === 'global-rules';
-  
-  const menuItems = [
-    { 
-      id: 'dashboard', 
-      label: t('common.dashboard'), 
-      icon: LayoutDashboard,
-      permission: 'viewDashboard' as const
-    },
-    { 
-      id: 'applications', 
-      label: t('common.applications'), 
-      icon: FileText,
-      permission: 'viewCAF' as const
-    },
-    { 
-      id: 'documents', 
-      label: t('common.documents'), 
-      icon: FolderOpen,
-      permission: 'viewDocuments' as const
-    },
-    { 
-      id: 'templates', 
-      label: t('common.templates'), 
-      icon: Layers,
-      permission: 'viewTemplates' as const
-    },
-    { 
-      id: 'audit', 
-      label: t('common.audit'), 
-      icon: ShieldCheck,
-      permission: 'viewAuditQueue' as const
-    },
-  ];
 
-  // Filter menu items based on user permissions
-  const visibleMenuItems = menuItems.filter(item => hasPermission(user, item.permission));
+  const navTo = (id: string) => {
+    setActiveTab(id);
+    if (window.innerWidth < 1024) setIsOpen(false);
+  };
+
+  const isActive = (id: string) => id === 'templates' ? isTemplatesActive : activeTab === id;
 
   return (
     <>
-      {/* Mobile Toggle */}
-      <button 
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900 text-white rounded-md"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
-      {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-60 bg-white text-slate-600 transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-slate-200",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        'fixed inset-y-0 left-0 z-40 w-56 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 lg:translate-x-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-8 flex items-center justify-center">
-            <img 
-              src="/logo.svg" 
-              alt="ATOMA Logo" 
-              className="h-12 w-auto"
-            />
+        {/* Logo */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
+          <img src="/logo.svg" alt="ATOMA" className="h-7 w-auto" />
+          <div>
+            <p className="text-xs font-bold text-gray-800 leading-none">ATOMA</p>
+            <p className="text-[10px] text-gray-400 leading-none mt-0.5">CAF System</p>
           </div>
+          <button className="ml-auto lg:hidden p-1 text-gray-400" onClick={() => setIsOpen(false)}>
+            <X size={16} />
+          </button>
+        </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-6 space-y-4 overflow-y-auto">
-            <div>
-              <h3 className="px-3 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Management</h3>
-              <ul className="space-y-1.5">
-                {visibleMenuItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      if (window.innerWidth < 1024) setIsOpen(false);
-                    }}
-                    className={cn(
-                      "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group",
-                      (item.id === 'templates' ? isTemplatesActive : activeTab === item.id)
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    )}
-                  >
-                    <item.icon size={16} className={cn(
-                      "transition-colors shrink-0",
-                      (item.id === 'templates' ? isTemplatesActive : activeTab === item.id) ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"
-                    )} />
-                    <span className="whitespace-nowrap">{item.label}</span>
-                  </button>
-                ))}
-              </ul>
-            </div>
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-2 px-2">
+          {NAV_GROUPS.map((group, gi) => {
+            const visible = group.items.filter(item => hasPermission(user, item.permission));
+            if (visible.length === 0) return null;
 
-            <div className="pt-4">
-              <h3 className="px-3 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Action Center</h3>
-              {hasPermission(user, 'createCAF') && (
-                <button 
-                  onClick={() => setActiveTab('new-caf')}
-                  className={cn(
-                    "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                    activeTab === 'new-caf' ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  )}
-                >
-                  <PlusCircle size={16} className={cn(
-                    "shrink-0",
-                    activeTab === 'new-caf' ? "text-indigo-600" : "text-slate-400"
-                  )} />
-                  <span className="whitespace-nowrap">{t('common.new_caf')}</span>
-                </button>
-              )}
-            </div>
+            return (
+              <div key={group.sectionKey} className={cn('mb-1', gi > 0 && 'mt-3')}>
+                {/* Section divider + label */}
+                {gi > 0 && <div className="h-px bg-gray-100 mb-3 mx-1" />}
+                <p className="px-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  {t(group.sectionKey)}
+                </p>
 
-            {hasPermission(user, 'manageUsers') && (
-              <div className="pt-4">
-                <h3 className="px-3 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('common.system')}</h3>
-                <button 
-                  onClick={() => {
-                    setActiveTab('system-management');
-                    if (window.innerWidth < 1024) setIsOpen(false);
-                  }}
-                  className={cn(
-                    "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group",
-                    activeTab === 'system-management' ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  )}
-                >
-                  <Settings size={16} className={cn(
-                    "transition-colors shrink-0",
-                    activeTab === 'system-management' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"
-                  )} />
-                  <span className="whitespace-nowrap">{t('common.system_management')}</span>
-                </button>
+                <div className="space-y-0.5">
+                  {visible.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => navTo(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors text-left',
+                        isActive(item.id)
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      )}
+                    >
+                      <item.icon
+                        size={15}
+                        className={isActive(item.id) ? 'text-blue-600' : 'text-gray-400'}
+                      />
+                      {t(item.labelKey)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </nav>
+            );
+          })}
 
-          {/* Logout Button */}
-          <div className="p-6 border-t border-slate-200">
-            <button
-              onClick={onLogout}
-              className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all group"
-            >
-              <LogOut size={16} className="text-rose-500 group-hover:text-rose-600 transition-colors shrink-0" />
-              <span className="whitespace-nowrap">{t('common.logout')}</span>
-            </button>
-          </div>
+          {/* New CAF action */}
+          {hasPermission(user, 'createCAF') && (
+            <div className="mt-3">
+              <div className="h-px bg-gray-100 mb-3 mx-1" />
+              <p className="px-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                {t('sidebar.actions_section')}
+              </p>
+              <button
+                onClick={() => navTo('new-caf')}
+                className={cn(
+                  'w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors text-left',
+                  activeTab === 'new-caf'
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                )}
+              >
+                <PlusCircle size={15} className={activeTab === 'new-caf' ? 'text-blue-600' : 'text-gray-400'} />
+                {t('common.new_caf')}
+              </button>
+            </div>
+          )}
+
+          {/* System Management */}
+          {hasPermission(user, 'manageUsers') && (
+            <div className="mt-3">
+              <div className="h-px bg-gray-100 mb-3 mx-1" />
+              <p className="px-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                {t('sidebar.system_section')}
+              </p>
+              <button
+                onClick={() => navTo('system-management')}
+                className={cn(
+                  'w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors text-left',
+                  activeTab === 'system-management'
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                )}
+              >
+                <Settings size={15} className={activeTab === 'system-management' ? 'text-blue-600' : 'text-gray-400'} />
+                {t('common.system_management')}
+              </button>
+            </div>
+          )}
+        </nav>
+
+        {/* User + Logout */}
+        <div className="border-t border-gray-100 p-3 shrink-0">
+          {user && (
+            <div className="flex items-center gap-2 px-2 py-1.5 mb-1">
+              <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                {(user.fullName || user.username)[0].toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-800 truncate">{user.fullName || user.username}</p>
+                <p className="text-[10px] text-gray-400 capitalize">{user.role}</p>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut size={15} className="text-red-500" />
+            {t('common.logout')}
+          </button>
         </div>
       </aside>
 
-      {/* Overlay */}
+      {/* Mobile overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setIsOpen(false)} />
       )}
     </>
   );

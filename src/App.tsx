@@ -10,8 +10,11 @@ import { TemplateManagement } from './components/TemplateManagement';
 import { GlobalRulesPage } from './components/GlobalRulesPage';
 import { Login } from './components/Login';
 import { SystemManagement } from './components/SystemManagement';
-import { motion, AnimatePresence } from 'motion/react';
-import { Bell, Search, Globe, ChevronDown, Languages, X, Eye, Download } from 'lucide-react';
+import { IntegrationHub } from './components/IntegrationHub';
+import { ComplianceRegistry } from './components/ComplianceRegistry';
+import { SiteRegistry } from './components/SiteRegistry';
+import { ContractManager } from './components/ContractManager';
+import { Bell, Languages, ChevronDown, X, Eye, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from './lib/utils';
 import { fileStorage, type UploadedFile } from './lib/fileStorage';
@@ -36,8 +39,12 @@ function AppShell() {
   const [loadingFileId, setLoadingFileId] = useState<string | null>(null);
 
   const toggleLanguage = () => {
-    const nextLang = i18n.language === 'en' ? 'zh' : 'en';
+    const langs = ['en', 'dar', 'zh'];
+    const idx = langs.indexOf(i18n.language);
+    const nextLang = langs[(idx + 1) % langs.length];
     i18n.changeLanguage(nextLang);
+    // RTL support for Dari
+    document.documentElement.dir = nextLang === 'dar' ? 'rtl' : 'ltr';
   };
 
   const handleCorrect = (caf: any) => {
@@ -94,7 +101,7 @@ function AppShell() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard user={user} />;
       case 'applications': return <CAFList onCorrect={handleCorrect} onNewEntry={navigateToNewCAF} onView={handleViewCAF} user={user} />;
       case 'new-caf': return (
         <CAFForm
@@ -112,6 +119,10 @@ function AppShell() {
       );
       case 'audit': return <AuditPortal />;
       case 'system-management': return <SystemManagement />;
+      case 'integrations': return <IntegrationHub />;
+      case 'compliance': return <ComplianceRegistry />;
+      case 'site-registry': return <SiteRegistry />;
+      case 'contracts': return <ContractManager />;
       default: return <Dashboard user={user} />;
     }
   };
@@ -126,6 +137,10 @@ function AppShell() {
       case 'global-rules': return t('common.global_rules');
       case 'audit': return t('common.audit');
       case 'system-management': return t('common.system_management');
+      case 'integrations': return t('common.integrations');
+      case 'compliance': return t('common.compliance');
+      case 'site-registry': return t('common.site_registry');
+      case 'contracts': return t('common.contracts');
       default: return t('common.dashboard');
     }
   };
@@ -138,105 +153,74 @@ function AppShell() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans antialiased text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={changeTab} 
-        isOpen={isSidebarOpen} 
-        setIsOpen={setIsSidebarOpen} 
+    <div className="min-h-screen bg-gray-50 flex font-sans antialiased text-gray-900">
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={changeTab}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
         onLogout={() => setUser(null)}
         user={user}
       />
-      
-      <main className="flex-1 lg:ml-60 flex flex-col min-h-screen">
+
+      <main className="flex-1 lg:ml-56 flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8 flex-shrink-0">
-           <div className="flex items-center gap-6">
-              <div className="lg:hidden w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-2">
-                <div className="w-3 h-3 bg-white rounded-sm rotate-45"></div>
-              </div>
-              <h1 className="text-sm font-bold text-slate-800 uppercase tracking-widest hidden sm:block">
-                {getPageTitle()}
-              </h1>
-           </div>
+        <header className="h-12 bg-white border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              className="lg:hidden p-1 text-gray-500 hover:text-gray-700"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+            <span className="text-sm font-medium text-gray-700">{getPageTitle()}</span>
+          </div>
 
-           <div className="flex items-center gap-4 md:gap-6">
-              <div className="hidden sm:relative md:flex items-center">
-                <Search size={16} className="absolute left-3 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder={t('common.search_caf_placeholder')} 
-                  className="bg-slate-100 border-none rounded-full py-2 pl-10 pr-4 text-xs w-48 lg:w-64 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
-                />
+          <div className="flex items-center gap-3">
+            <button onClick={toggleLanguage} className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+              <Languages size={12} />
+              {i18n.language === 'en' ? 'EN' : i18n.language === 'dar' ? 'دری' : 'ZH'}
+            </button>
+            <div className="h-4 w-px bg-gray-200" />
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                {(user.fullName || user.username || 'U')[0].toUpperCase()}
               </div>
-
-              <div className="flex items-center gap-3">
-                 <div className="relative cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors">
-                    <Bell size={18} className="text-slate-500" />
-                    <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-indigo-600 border-2 border-white rounded-full"></span>
-                 </div>
-                 <button 
-                   onClick={toggleLanguage}
-                   className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-all text-[10px] font-bold text-slate-600 uppercase tracking-widest border border-slate-100"
-                 >
-                    <Languages size={14} className="text-indigo-600" />
-                    {i18n.language === 'en' ? 'EN' : 'ZH'}
-                 </button>
-                 <div className="h-6 w-[1px] bg-slate-200" />
-                 <div className="flex items-center gap-3 cursor-pointer group">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 lg:hidden"></div>
-                    <div className="text-right hidden lg:block">
-                       <p className="text-xs font-bold text-slate-900 leading-none">{user.fullName || user.name}</p>
-                       <p className={cn("text-[10px] font-bold mt-1 uppercase tracking-wider px-2 py-0.5 rounded inline-block", getRoleColor(user.role))}>
-                         {getRoleDisplayName(user.role)}
-                       </p>
-                    </div>
-                    <ChevronDown size={14} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
-                 </div>
+              <div className="hidden lg:block">
+                <p className="text-xs font-medium text-gray-800 leading-none">{user.fullName || user.username}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{user.role}</p>
               </div>
-           </div>
+            </div>
+          </div>
         </header>
 
-        {/* Content Area */}
-        <div className="flex-1 p-6 lg:p-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="max-w-7xl mx-auto"
-            >
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
+        {/* Content */}
+        <div className="flex-1 p-5 lg:p-7">
+          <div className="max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
         </div>
 
         {/* Footer */}
-        <footer className="p-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-400 container mx-auto">
-           <p className="text-xs font-medium">© 2026 ATOMA Telecom. Regulatory CAF System.</p>
-           <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest">
-              <a href="#" className="hover:text-indigo-600 transition-colors">Compliance</a>
-              <a href="#" className="hover:text-indigo-600 transition-colors">Legal Info</a>
-              <a href="#" className="hover:text-indigo-600 transition-colors">Security</a>
-           </div>
+        <footer className="px-6 py-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400 bg-white">
+          <p>© 2026 ATOMA Telecom · Regulatory CAF System v3.0</p>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-gray-600 transition-colors">{t('app_shell.footer_compliance')}</a>
+            <a href="#" className="hover:text-gray-600 transition-colors">{t('app_shell.footer_legal')}</a>
+            <a href="#" className="hover:text-gray-600 transition-colors">{t('app_shell.footer_security')}</a>
+          </div>
         </footer>
       </main>
 
       {/* View CAF Modal */}
       {viewingCAF && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col"
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] shadow-xl overflow-hidden flex flex-col border border-gray-200">
             {/* Modal Header */}
             <div className="px-8 py-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">CAF Details</h3>
-                <p className="text-xs text-slate-500 mt-1 font-medium">Application ID: {viewingCAF.id}</p>
+                <h3 className="text-xl font-bold text-slate-800">{t('app_shell.caf_details')}</h3>
+                <p className="text-xs text-slate-500 mt-1 font-medium">{t('app_shell.application_id')}: {viewingCAF.id}</p>
               </div>
               <button 
                 onClick={() => setViewingCAF(null)}
@@ -252,35 +236,35 @@ function AppShell() {
             <div className="flex-1 overflow-y-auto p-8 space-y-6">
               {/* Customer Information */}
               <div>
-                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Customer Information</h4>
+                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{t('app_shell.customer_info')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Full Name</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.full_name')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.fullName}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Customer Type</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.customer_type')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.customerType}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">ID Type</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.id_type')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.idType}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">ID Number</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.id_number')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.idNumber}</p>
                   </div>
                   <div className="space-y-1 col-span-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Address</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.address')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.address}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Contact Number</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.contact_number')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.contactNumber}</p>
                   </div>
                   {viewingCAF.email && (
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase">Email</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.email')}</p>
                       <p className="text-sm font-semibold text-slate-800">{viewingCAF.email}</p>
                     </div>
                   )}
@@ -289,18 +273,18 @@ function AppShell() {
 
               {/* Service Information */}
               <div className="pt-6 border-t border-slate-200">
-                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Service Information</h4>
+                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{t('app_shell.service_info')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Service Type</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.service_type')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.serviceType}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Plan Name</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.plan_name')}</p>
                     <p className="text-sm font-semibold text-slate-800">{viewingCAF.planName}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Status</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.status')}</p>
                     <span className={cn(
                       "text-xs font-bold uppercase px-2 py-1 rounded inline-block",
                       viewingCAF.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
@@ -313,7 +297,7 @@ function AppShell() {
                     </span>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Submission Date</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.submission_date')}</p>
                     <p className="text-sm font-semibold text-slate-800">
                       {new Date(viewingCAF.submissionDate).toLocaleDateString('en-US', { 
                         year: 'numeric', 
@@ -328,28 +312,28 @@ function AppShell() {
               {/* Corporate Details (if applicable) */}
               {viewingCAF.corporateDetails && (
                 <div className="pt-6 border-t border-slate-200">
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Corporate Details</h4>
+                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{t('app_shell.corporate_details')}</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase">Company Reg No</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.company_reg')}</p>
                       <p className="text-sm font-semibold text-slate-800">{viewingCAF.corporateDetails.companyRegNo}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase">Tax ID</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.tax_id')}</p>
                       <p className="text-sm font-semibold text-slate-800">{viewingCAF.corporateDetails.taxId}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase">Authorized Signatory</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.auth_signatory')}</p>
                       <p className="text-sm font-semibold text-slate-800">{viewingCAF.corporateDetails.authorizedSignatory}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase">Technical Contact</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.tech_contact')}</p>
                       <p className="text-sm font-semibold text-slate-800">{viewingCAF.corporateDetails.technicalContact}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase">Static IP Required</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.static_ip')}</p>
                       <p className="text-sm font-semibold text-slate-800">
-                        {viewingCAF.corporateDetails.staticIpRequired ? 'Yes' : 'No'}
+                        {viewingCAF.corporateDetails.staticIpRequired ? t('app_shell.yes') : t('app_shell.no')}
                       </p>
                     </div>
                   </div>
@@ -359,7 +343,7 @@ function AppShell() {
               {/* Documents */}
               {viewingCAF.documents && viewingCAF.documents.length > 0 && (
                 <div className="pt-6 border-t border-slate-200">
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Documents ({viewingCAF.documents.length})</h4>
+                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{t('app_shell.documents_section')} ({viewingCAF.documents.length})</h4>
                   <div className="space-y-2">
                     {viewingCAF.documents.map((doc: any) => (
                       <div key={doc.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all group">
@@ -417,37 +401,30 @@ function AppShell() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-8 py-6 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
-              <button 
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2 shrink-0">
+              <button
                 onClick={() => setViewingCAF(null)}
-                className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors"
               >
-                Close
+                {t('app_shell.close')}
               </button>
               {viewingCAF.status === 'Pending' && (
-                <button 
-                  onClick={() => {
-                    setViewingCAF(null);
-                    setActiveTab('audit');
-                  }}
-                  className="px-5 py-2.5 bg-indigo-600 rounded-xl text-xs font-bold uppercase tracking-widest text-white hover:bg-indigo-700 transition-all"
+                <button
+                  onClick={() => { setViewingCAF(null); setActiveTab('audit'); }}
+                  className="px-4 py-2 bg-blue-600 rounded-md text-sm text-white hover:bg-blue-700 transition-colors"
                 >
-                  Go to Audit
+                  {t('app_shell.go_to_audit')}
                 </button>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
       {/* File Preview Modal */}
       {previewFile && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
-          >
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200">
             {/* Preview Header */}
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -516,40 +493,35 @@ function AppShell() {
                       <path d="M14 2V8H20" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
-                  <h4 className="text-lg font-bold text-slate-700 mb-2">Preview Not Available</h4>
+                  <h4 className="text-lg font-bold text-slate-700 mb-2">{t('app_shell.preview_unavailable')}</h4>
                   <p className="text-sm text-slate-500 mb-6">
-                    This file type cannot be previewed in the browser.
+                    {t('app_shell.preview_desc')}
                   </p>
                   <button
                     onClick={() => fileStorage.downloadFile(previewFile)}
                     className="px-6 py-3 bg-indigo-600 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 flex items-center gap-2"
                   >
                     <Download size={16} />
-                    Download File
+                    {t('app_shell.download_file')}
                   </button>
                 </div>
               )}
             </div>
 
             {/* Preview Footer */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-              <div className="text-xs text-slate-500">
-                <span className="font-bold">Category:</span> {previewFile.category || 'Uncategorized'}
-                {previewFile.cafId && (
-                  <>
-                    <span className="mx-2">•</span>
-                    <span className="font-bold">CAF ID:</span> {previewFile.cafId}
-                  </>
-                )}
-              </div>
-              <button 
+            <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between shrink-0">
+              <p className="text-xs text-gray-500">
+                {t('app_shell.category')}: {previewFile.category || 'Uncategorized'}
+                {previewFile.cafId && <> · CAF: {previewFile.cafId}</>}
+              </p>
+              <button
                 onClick={() => setPreviewFile(null)}
-                className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
+                className="px-4 py-1.5 border border-gray-300 rounded-md text-xs text-gray-600 hover:bg-gray-100 transition-colors"
               >
-                Close
+                {t('app_shell.close')}
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>

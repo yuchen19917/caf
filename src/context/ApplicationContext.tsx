@@ -1,10 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { MOCK_CAFS } from '../mockData';
 import type { CustomerApplicationForm } from '../types';
 import { buildCafFromForm, mergeCafCorrection, type CAFFormShape } from '../lib/cafFromForm';
 import type { User } from '../lib/auth';
-
-const STORAGE_KEY = 'caf-app-registry-v1';
+import { cafApi } from '../lib/api';
 
 export type ArchivedLibraryFile = {
   id: string;
@@ -16,120 +14,98 @@ export type ArchivedLibraryFile = {
   cafId: string;
 };
 
-type PersistedState = {
-  cafs: CustomerApplicationForm[];
-  archiveEntries: ArchivedLibraryFile[];
-};
-
-function loadPersisted(): PersistedState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { cafs: MOCK_CAFS, archiveEntries: [] };
-    const parsed = JSON.parse(raw) as Partial<PersistedState>;
-    return {
-      cafs: Array.isArray(parsed.cafs) && parsed.cafs.length > 0 ? parsed.cafs : MOCK_CAFS,
-      archiveEntries: Array.isArray(parsed.archiveEntries) ? parsed.archiveEntries : [],
-    };
-  } catch {
-    return { cafs: MOCK_CAFS, archiveEntries: [] };
-  }
-}
-
 type ApplicationContextValue = {
   cafs: CustomerApplicationForm[];
   archiveEntries: ArchivedLibraryFile[];
-  addApplicationFromForm: (form: CAFFormShape, user: User) => CustomerApplicationForm;
-  resubmitCorrection: (cafId: string, form: CAFFormShape, user: User) => CustomerApplicationForm;
-  approveAndArchive: (cafId: string) => void;
+  loading: boolean;
+  addApplicationFromForm: (form: CAFFormShape, user: User) => Promise<CustomerApplicationForm>;
+  resubmitCorrection: (cafId: string, form: CAFFormShape, user: User) => Promise<CustomerApplicationForm>;
+  approveAndArchive: (cafId: string) => Promise<void>;
+  rejectCAF: (cafId: string) => Promise<void>;
+  requestCorrection: (cafId: string) => Promise<void>;
+  deleteCAF: (cafId: string) => Promise<void>;
   getFilteredCAFs: (user: User | null) => CustomerApplicationForm[];
+  refresh: () => Promise<void>;
 };
 
 const ApplicationContext = createContext<ApplicationContextValue | null>(null);
 
 export function ApplicationProvider({ children }: { children: React.ReactNode }) {
-  const [{ cafs, archiveEntries }, setState] = useState<PersistedState>(loadPersisted);
+  const [cafs, setCafs] = useState<CustomerApplicationForm[]>([]);
+  const [archiveEntries, setArchiveEntries] = useState<ArchivedLibraryFile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    try {
+      const data = await cafApi.getAll();
+      setCafs(data.cafs || []);
+      setArchiveEntries(data.archiveEntries || []);
+    } catch (e) {
+      console.error('[CAF] Failed to load from server:', e);
+    }
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ cafs, archiveEntries }));
-  }, [cafs, archiveEntries]);
+    setLoading(true);
+    refresh().finally(() => setLoading(false));
+  }, [refresh]);
 
-  const addApplicationFromForm = useCallback((form: CAFFormShape, user: User): CustomerApplicationForm => {
-    let created!: CustomerApplicationForm;
-    setState((s) => {
-      created = buildCafFromForm(form, s.cafs);
-      // Add creator information
-      created = {
-        ...created,
-        createdBy: user.id,
-        createdByUsername: user.username,
-      };
-      return { ...s, cafs: [created, ...s.cafs] };
-    });
-    return created;
-  }, []);
-
-  const resubmitCorrection = useCallback((cafId: string, form: CAFFormShape, user: User): CustomerApplicationForm => {
-    let result!: CustomerApplicationForm;
-    setState((s) => {
-      const prev = s.cafs.find((c) => c.id === cafId);
-      if (!prev) {
-        result = buildCafFromForm(form, s.cafs);
-        result = {
-          ...result,
-          createdBy: user.id,
-          createdByUsername: user.username,
-        };
-        return { ...s, cafs: [result, ...s.cafs] };
-      }
-      result = mergeCafCorrection(prev, form);
-      return { ...s, cafs: s.cafs.map((c) => (c.id === cafId ? result : c)) };
-    });
-    return result;
-  }, []);
-
-  const approveAndArchive = useCallback((cafId: string) => {
-    const archivedAt = new Date().toISOString();
-    const bundleName = `${cafId}-approved-archive.pdf`;
-    const sizeKb = Math.round(650 + Math.random() * 350);
-    const entry: ArchivedLibraryFile = {
-      id: `arc-${cafId}-${Date.now()}`,
-      name: bundleName,
-      size: `${sizeKb} KB`,
-      archivedAt,
-      type: 'pdf',
-      status: 'approved',
-      cafId,
+  const addApplicationFromForm = useCallback(async (form: CAFFormShape, user: User): Promise<CustomerApplicationForm> => {
+    // Build the CAF locally to generate fields, then send to server
+    const skeleton = buildCafFromForm(form, cafs);
+    const payload: CustomerApplicationForm = {
+      ...skeleton,
+      createdBy: user.id,
+      createdByUsername: user.username,
     };
+    // Remove the auto-id; server will assign a real one
+    const { id: _id, ...body } = payload;
+    const created = await cafApi.create(body);
+    setCafs(prev => [created, ...prev]);
+    return created;
+  }, [cafs]);
 
-    setState((s) => ({
-      cafs: s.cafs.map((c) => (c.id === cafId ? { ...c, status: 'Archived' as const } : c)),
-      archiveEntries: [entry, ...s.archiveEntries],
-    }));
+  const resubmitCorrection = useCallback(async (cafId: string, form: CAFFormShape, user: User): Promise<CustomerApplicationForm> => {
+    const prev = cafs.find(c => c.id === cafId);
+    if (!prev) {
+      return addApplicationFromForm(form, user);
+    }
+    const corrected = mergeCafCorrection(prev, form);
+    const updated = await cafApi.update(cafId, corrected);
+    setCafs(s => s.map(c => c.id === cafId ? updated : c));
+    return updated;
+  }, [cafs, addApplicationFromForm]);
+
+  const approveAndArchive = useCallback(async (cafId: string): Promise<void> => {
+    const result = await cafApi.archive(cafId);
+    setCafs(s => s.map(c => c.id === cafId ? result.caf : c));
+    setArchiveEntries(s => [result.entry, ...s]);
   }, []);
 
-  // Filter CAFs based on user role
+  const rejectCAF = useCallback(async (cafId: string): Promise<void> => {
+    const updated = await cafApi.update(cafId, { status: 'Rejected' });
+    setCafs(s => s.map(c => c.id === cafId ? updated : c));
+  }, []);
+
+  const requestCorrection = useCallback(async (cafId: string): Promise<void> => {
+    const updated = await cafApi.update(cafId, { status: 'Correction' });
+    setCafs(s => s.map(c => c.id === cafId ? updated : c));
+  }, []);
+
+  const deleteCAF = useCallback(async (cafId: string): Promise<void> => {
+    await cafApi.remove(cafId);
+    setCafs(s => s.filter(c => c.id !== cafId));
+  }, []);
+
   const getFilteredCAFs = useCallback((user: User | null): CustomerApplicationForm[] => {
-    // If no user, return empty array
-    if (!user) {
-      return [];
-    }
-    
-    // Admin and Auditor can see all CAFs
-    if (user.role === 'admin' || user.role === 'auditor') {
-      return cafs;
-    }
-    
-    // Agent can only see their own CAFs
-    if (user.role === 'agent') {
-      return cafs.filter(caf => caf.createdBy === user.id || caf.createdByUsername === user.username);
-    }
-    
-    return cafs;
+    if (!user) return [];
+    if (user.role === 'admin' || user.role === 'auditor') return cafs;
+    return cafs.filter(c => c.createdBy === user.id || c.createdByUsername === user.username);
   }, [cafs]);
 
   const value = useMemo(
-    () => ({ cafs, archiveEntries, addApplicationFromForm, resubmitCorrection, approveAndArchive, getFilteredCAFs }),
-    [cafs, archiveEntries, addApplicationFromForm, resubmitCorrection, approveAndArchive, getFilteredCAFs]
+    () => ({ cafs, archiveEntries, loading, addApplicationFromForm, resubmitCorrection, approveAndArchive, rejectCAF, requestCorrection, deleteCAF, getFilteredCAFs, refresh }),
+    [cafs, archiveEntries, loading, addApplicationFromForm, resubmitCorrection, approveAndArchive, rejectCAF, requestCorrection, deleteCAF, getFilteredCAFs, refresh]
   );
 
   return <ApplicationContext.Provider value={value}>{children}</ApplicationContext.Provider>;

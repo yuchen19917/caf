@@ -1,18 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  MoreHorizontal,
+import {
+  Search,
+  Filter,
+  Download,
+  Eye,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   UserPlus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useApplications } from '../context/ApplicationContext';
 import { CAFStatus } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface CAFListProps {
   onCorrect?: (caf: any) => void;
@@ -23,9 +22,10 @@ interface CAFListProps {
 
 export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFListProps) {
   const { getFilteredCAFs } = useApplications();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
 
-  // Get filtered CAFs based on user role
   const cafs = useMemo(() => {
     if (!user) return [];
     return getFilteredCAFs(user);
@@ -33,12 +33,14 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
 
   const filtered = useMemo(
     () =>
-      cafs.filter(
-        (caf) =>
+      cafs.filter((caf) => {
+        const matchesSearch =
           caf.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          caf.id.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [cafs, searchTerm]
+          caf.id.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || caf.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      }),
+    [cafs, searchTerm, statusFilter]
   );
 
   const getStatusColor = (status: CAFStatus) => {
@@ -56,18 +58,18 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
     <div className="space-y-8 flex flex-col h-full">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Customer Registry</h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">Review and process incoming SIM registration requests</p>
+          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">{t('caf_list.title')}</h2>
+          <p className="text-slate-500 text-sm mt-1 font-medium">{t('caf_list.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 shadow-sm transition-all active:scale-95">
-            <Download size={14} /> Export XLS
+            <Download size={14} /> {t('caf_list.export_xls')}
           </button>
-          <button 
+          <button
             onClick={onNewEntry}
             className="flex items-center gap-2 bg-indigo-600 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-white hover:bg-indigo-700 shadow-lg shadow-indigo-900/10 transition-all active:scale-95"
           >
-            <UserPlus size={14} /> New CAF Entry
+            <UserPlus size={14} /> {t('caf_list.new_entry')}
           </button>
         </div>
       </div>
@@ -78,9 +80,9 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
         <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50/50">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Filter by name, CAF number or ID..."
+            <input
+              type="text"
+              placeholder={t('caf_list.filter_placeholder')}
               className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -88,15 +90,21 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
           </div>
           <div className="flex items-center gap-2">
             <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900">
-              <Filter size={14} /> Filters
+              <Filter size={14} /> {t('caf_list.filters_btn')}
             </button>
             <div className="h-6 w-[1px] bg-slate-200 mx-1" />
-            <select className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-500 focus:outline-none">
-              <option>Status: All</option>
-              <option>Pending</option>
-              <option>Approved</option>
-              <option>Correction Required</option>
-              <option>Archived</option>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-500 focus:outline-none"
+            >
+              <option value="All">{t('caf_list.status_all')}</option>
+              <option value="Pending">{t('caf_list.status_pending')}</option>
+              <option value="Approved">{t('caf_list.status_approved')}</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Correction">{t('caf_list.status_correction')}</option>
+              <option value="Draft">Draft</option>
+              <option value="Archived">{t('caf_list.status_archived')}</option>
             </select>
           </div>
         </div>
@@ -105,12 +113,12 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
-                <th className="pl-8 pr-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer Profile</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Type</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Plan Details</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Submitted</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Audit Status</th>
-                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Inspector</th>
+                <th className="pl-8 pr-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('caf_list.col_customer')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('caf_list.col_type')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('caf_list.col_plan')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('caf_list.col_submitted')}</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('caf_list.col_status')}</th>
+                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">{t('caf_list.col_inspector')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -157,23 +165,23 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
                   <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
                        {caf.status === 'Correction' && (
-                         <button 
+                         <button
                            onClick={(e) => { e.stopPropagation(); onCorrect?.(caf); }}
-                           className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" 
-                           title="Correct Submission"
+                           className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                           title={t('caf_list.correct_submission')}
                          >
                            <UserPlus size={18} />
                          </button>
                        )}
                        {caf.status === 'Approved' && (
-                         <button className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Archive CAF">
+                         <button className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title={t('caf_list.archive_caf')}>
                            <Download size={18} />
                          </button>
                        )}
-                       <button 
+                       <button
                          onClick={(e) => { e.stopPropagation(); onView?.(caf); }}
-                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" 
-                         title="View Detail"
+                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                         title={t('caf_list.view_detail')}
                        >
                          <Eye size={18} />
                        </button>
@@ -185,14 +193,14 @@ export default function CAFList({ onCorrect, onNewEntry, onView, user }: CAFList
           </table>
         </div>
 
-        {/* Improved Pagination */}
+        {/* Pagination */}
         <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Showing{' '}
+            {t('caf_list.showing_prefix')}{' '}
             <span className="text-slate-900">
               {filtered.length === 0 ? '0' : `1-${filtered.length}`}
             </span>{' '}
-            of <span className="text-slate-900">{cafs.length}</span> CAFs
+            {t('caf_list.showing_of')} <span className="text-slate-900">{cafs.length}</span> {t('caf_list.showing_suffix')}
           </p>
           <div className="flex items-center gap-1.5">
             <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-lg text-slate-400 disabled:opacity-30" disabled>

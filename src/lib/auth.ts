@@ -37,6 +37,18 @@ export interface Permission {
   viewGlobalRules: boolean;
   editGlobalRules: boolean;
   
+  // Integrations
+  viewIntegrations: boolean;
+
+  // Compliance & Regulatory
+  viewCompliance: boolean;
+
+  // Site Registry
+  viewSiteRegistry: boolean;
+
+  // Contract Manager
+  viewContracts: boolean;
+
   // System
   viewAllUsers: boolean;
   manageUsers: boolean;
@@ -81,12 +93,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission> = {
     deleteTemplates: true,
     viewGlobalRules: true,
     editGlobalRules: true,
+    viewIntegrations: true,
+    viewCompliance: true,
+    viewSiteRegistry: true,
+    viewContracts: true,
     viewAllUsers: true,
     manageUsers: true,
     viewSystemLogs: true,
     exportData: true,
   },
-  
+
   // 代理人员 - CAF创建和查看权限
   agent: {
     viewDashboard: true,
@@ -108,12 +124,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission> = {
     deleteTemplates: false,
     viewGlobalRules: true,
     editGlobalRules: false,
+    viewIntegrations: false,
+    viewCompliance: false,
+    viewSiteRegistry: true,
+    viewContracts: false,
     viewAllUsers: false,
     manageUsers: false,
     viewSystemLogs: false,
     exportData: false,
   },
-  
+
   // 审批人员 - 审核权限
   auditor: {
     viewDashboard: true,
@@ -135,6 +155,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission> = {
     deleteTemplates: false,
     viewGlobalRules: true,
     editGlobalRules: false,
+    viewIntegrations: true,
+    viewCompliance: true,
+    viewSiteRegistry: true,
+    viewContracts: true,
     viewAllUsers: false,
     manageUsers: false,
     viewSystemLogs: false,
@@ -149,9 +173,9 @@ export const PREDEFINED_USERS: User[] = [
     username: 'admin',
     password: 'admin123',
     role: 'admin',
-    fullName: 'System Administrator',
-    email: 'admin@atoma.com',
-    department: 'IT Department',
+    fullName: 'Rahmatullah Karimi',
+    email: 'r.karimi@atoma.af',
+    department: 'IT & Systems',
     permissions: ROLE_PERMISSIONS.admin,
     createdAt: '2026-01-01T00:00:00Z',
     isActive: true,
@@ -161,9 +185,9 @@ export const PREDEFINED_USERS: User[] = [
     username: 'agent',
     password: 'agent123',
     role: 'agent',
-    fullName: 'Customer Service Agent',
-    email: 'agent@atoma.com',
-    department: 'Customer Service',
+    fullName: 'Mariam Noorzai',
+    email: 'm.noorzai@atoma.af',
+    department: 'Customer Services — Kabul',
     permissions: ROLE_PERMISSIONS.agent,
     createdAt: '2026-01-01T00:00:00Z',
     isActive: true,
@@ -173,9 +197,9 @@ export const PREDEFINED_USERS: User[] = [
     username: 'auditor',
     password: 'auditor123',
     role: 'auditor',
-    fullName: 'CAF Audit Manager',
-    email: 'auditor@atoma.com',
-    department: 'Compliance & Audit',
+    fullName: 'Sayed Yusuf Ahmadi',
+    email: 's.ahmadi@atoma.af',
+    department: 'Compliance & Regulatory Affairs',
     permissions: ROLE_PERMISSIONS.auditor,
     createdAt: '2026-01-01T00:00:00Z',
     isActive: true,

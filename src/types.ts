@@ -2,6 +2,16 @@ export type CAFStatus = 'Pending' | 'Approved' | 'Rejected' | 'Draft' | 'Correct
 export type CustomerType = 'Individual' | 'Corporate';
 export type ServiceType = 'Prepaid' | 'Postpaid' | 'Data Only';
 
+export type TemplateLifecycle = 'draft' | 'active' | 'deprecated' | 'archived';
+
+export interface TemplateVersionEntry {
+  version: string;
+  modifiedAt: string;
+  modifiedBy: string;
+  notes: string;
+  lifecycle: TemplateLifecycle;
+}
+
 export interface CAFTemplate {
   id: string;
   name: string;
@@ -19,6 +29,12 @@ export interface CAFTemplate {
   }[];
   lastModified: string;
   isActive: boolean;
+  /** Semantic version string, e.g. "1.0", "2.1" */
+  version: string;
+  /** Lifecycle state controlling availability */
+  lifecycle: TemplateLifecycle;
+  /** Audit trail of version changes */
+  versionHistory?: TemplateVersionEntry[];
   termsAndConditions?: string;
   /** Rich-text terms are a complete printable CAF page (preview skips default chrome). */
   isFullPageTerms?: boolean;

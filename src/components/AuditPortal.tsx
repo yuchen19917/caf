@@ -60,7 +60,7 @@ function queueMetaLine(caf: CustomerApplicationForm, t: TFunction) {
 
 export default function AuditPortal() {
   const { t } = useTranslation();
-  const { cafs, approveAndArchive } = useApplications();
+  const { cafs, approveAndArchive, rejectCAF, requestCorrection } = useApplications();
   const queue = useMemo(
     () => cafs.filter((c) => c.status === 'Pending' || c.status === 'Rejected'),
     [cafs]
@@ -69,6 +69,7 @@ export default function AuditPortal() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStep, setSyncStep] = useState(0);
   const [isArchived, setIsArchived] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'rejected' | 'correction'; cafId: string } | null>(null);
   /** Snapshot of the CAF just approved (queue selection moves on before this screen dismisses). */
   const [archivedCaf, setArchivedCaf] = useState<CustomerApplicationForm | null>(null);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
@@ -130,6 +131,22 @@ export default function AuditPortal() {
       setArchivedCaf(snapshot);
       setIsArchived(true);
     }, 5000);
+  };
+
+  const handleReject = async () => {
+    if (!selectedAudit) return;
+    const targetId = selectedAudit.id;
+    await rejectCAF(targetId);
+    setActionFeedback({ type: 'rejected', cafId: targetId });
+    setTimeout(() => setActionFeedback(null), 3000);
+  };
+
+  const handleRequestCorrection = async () => {
+    if (!selectedAudit) return;
+    const targetId = selectedAudit.id;
+    await requestCorrection(targetId);
+    setActionFeedback({ type: 'correction', cafId: targetId });
+    setTimeout(() => setActionFeedback(null), 3000);
   };
 
   const getSyncTask = () => {
@@ -483,6 +500,20 @@ export default function AuditPortal() {
               </div>
             </section>
 
+            {actionFeedback && (
+              <div className={cn(
+                'px-6 py-4 rounded-2xl border text-xs font-bold uppercase tracking-widest flex items-center gap-3 animate-in fade-in duration-300',
+                actionFeedback.type === 'rejected'
+                  ? 'bg-rose-50 border-rose-200 text-rose-700'
+                  : 'bg-amber-50 border-amber-200 text-amber-700'
+              )}>
+                {actionFeedback.type === 'rejected'
+                  ? <><XCircle size={16} className="shrink-0" /> {actionFeedback.cafId} marked as Rejected</>
+                  : <><AlertTriangle size={16} className="shrink-0" /> {actionFeedback.cafId} — Correction requested, returned to agent</>
+                }
+              </div>
+            )}
+
             <div className="pt-10 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <button
                 type="button"
@@ -493,12 +524,14 @@ export default function AuditPortal() {
               </button>
               <button
                 type="button"
+                onClick={handleRequestCorrection}
                 className="flex items-center justify-center gap-3 py-4 bg-white border border-amber-200 text-amber-600 text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-amber-50 transition-all active:scale-95"
               >
                 <AlertTriangle size={16} className="shrink-0" /> {t('audit_portal.correct')}
               </button>
               <button
                 type="button"
+                onClick={handleReject}
                 className="flex items-center justify-center gap-3 py-4 bg-white border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-rose-50 transition-all active:scale-95"
               >
                 <XCircle size={16} className="shrink-0" /> {t('audit_portal.reject')}

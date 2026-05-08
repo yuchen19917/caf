@@ -10,6 +10,7 @@ import { useApplications } from '../context/ApplicationContext';
 import type { CustomerApplicationForm } from '../types';
 import { DocumentUploader } from './DocumentUploader';
 import type { UploadedFile } from '../lib/fileStorage';
+import { useTranslation } from 'react-i18next';
 
 //  Extracted outside component to prevent focus loss on re-render 
 interface FieldProps {
@@ -81,6 +82,7 @@ export default function CAFForm({
   user: any;
 }) {
   const { addApplicationFromForm, resubmitCorrection } = useApplications();
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>({
     ...EMPTY,
@@ -97,7 +99,7 @@ export default function CAFForm({
   const [submittedRecord, setSubmittedRecord] = useState<CustomerApplicationForm | null>(null);
 
   const set = (patch: Partial<FormData>) => setForm(f => ({ ...f, ...patch }));
-  const steps = ['Type & Profile', 'Service Details', 'Documents', 'Review & Submit'];
+  const steps = [t('caf_form.step_type_profile'), t('caf_form.step_service'), t('caf_form.step_documents'), t('caf_form.step_review')];
   const isCorrection = !!initialData;
   const nextStep = () => setStep(s => Math.min(s + 1, 4));
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
@@ -142,8 +144,8 @@ export default function CAFForm({
           </div>
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-slate-800">System Processing</h3>
-          <p className="text-slate-500 mt-2 font-medium">Executing multi-layer validation engine...</p>
+          <h3 className="text-2xl font-bold text-slate-800">{t('caf_form.processing_title')}</h3>
+          <p className="text-slate-500 mt-2 font-medium">{t('caf_form.processing_subtitle')}</p>
         </div>
         <div className="space-y-3 max-w-xs mx-auto">
           {['Field-level Integrity Check', 'Duplicate Customer ID Search', 'Document Authenticity Scores', 'Regulatory Blacklist Cross-check'].map((task, i) => (
@@ -163,10 +165,10 @@ export default function CAFForm({
           <CheckCircle size={48} />
         </div>
         <div>
-          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Application Submitted</h2>
-          <p className="text-slate-500 mt-2 font-medium">CAF Reference: <span className="font-mono text-indigo-600">{submittedRecord.id}</span></p>
+          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">{t('caf_form.submitted_title')}</h2>
+          <p className="text-slate-500 mt-2 font-medium">{t('caf_form.submitted_ref')} <span className="font-mono text-indigo-600">{submittedRecord.id}</span></p>
           <div className="mt-6 p-6 bg-slate-50 border border-slate-200 rounded-2xl text-left max-w-sm mx-auto space-y-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Submission Summary</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{t('caf_form.submission_summary')}</p>
             {[
               ['Subscriber', form.fullName || ''],
               ['Customer Type', form.customerType],
@@ -194,14 +196,14 @@ export default function CAFForm({
             }}
             className="px-8 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10"
           >
-            New Entry
+            {t('caf_form.new_entry_btn')}
           </button>
           <button
             type="button"
             onClick={() => onGoToApplications?.()}
             className="px-8 py-3 bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all"
           >
-            Return to Registry
+            {t('caf_form.return_registry')}
           </button>
         </div>
       </div>
@@ -212,10 +214,10 @@ export default function CAFForm({
     <div className="max-w-4xl mx-auto pb-12">
       <div className="mb-10">
         <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
-          {isCorrection ? `Correcting CAF: ${initialData.id}` : 'New Business Application (CAF)'}
+          {isCorrection ? t('caf_form.correction_title', { id: initialData.id }) : t('caf_form.new_caf_title')}
         </h2>
         <p className="text-slate-500 mt-1 font-medium">
-          {isCorrection ? 'Review and update rejected information to re-submit' : 'SME / ISP / OSP / Corporate / Lease Line'}
+          {isCorrection ? t('caf_form.correction_subtitle') : t('caf_form.new_subtitle')}
         </p>
       </div>
 
@@ -520,14 +522,15 @@ export default function CAFForm({
                 {requiredDocs.map((doc) => {
                   const uploadedFile = form.uploadedDocs.find(f => f.category === doc);
                   return (
-                    <DocumentUploader
-                      key={doc}
-                      documentName={doc}
-                      category={doc}
-                      onUpload={(file) => handleFileUpload(doc, file)}
-                      onRemove={() => handleFileRemove(doc)}
-                      uploadedFile={uploadedFile}
-                    />
+                    <React.Fragment key={doc}>
+                      <DocumentUploader
+                        documentName={doc}
+                        category={doc}
+                        onUpload={(file) => handleFileUpload(doc, file)}
+                        onRemove={() => handleFileRemove(doc)}
+                        uploadedFile={uploadedFile}
+                      />
+                    </React.Fragment>
                   );
                 })}
               </div>
@@ -656,7 +659,7 @@ export default function CAFForm({
         {/* Footer nav */}
         <div className="mt-12 flex justify-between items-center pt-8 border-t border-slate-100">
           {step > 1
-            ? <button type="button" onClick={prevStep} className="px-6 py-2.5 text-slate-500 text-xs font-bold uppercase tracking-widest hover:text-slate-900 transition-colors"> Back</button>
+            ? <button type="button" onClick={prevStep} className="px-6 py-2.5 text-slate-500 text-xs font-bold uppercase tracking-widest hover:text-slate-900 transition-colors">{t('caf_form.back')}</button>
             : <div />}
           <button type="button"
             onClick={step === 4 ? handleSubmit : nextStep}
@@ -665,7 +668,7 @@ export default function CAFForm({
               step === 4 && !confirmed
                 ? "bg-slate-300 cursor-not-allowed shadow-none"
                 : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-900/10")}>
-            {step === 4 ? 'Confirm & Submit CAF' : 'Continue '}
+            {step === 4 ? t('caf_form.submit_caf') : t('caf_form.continue')}
           </button>
         </div>
       </div>
