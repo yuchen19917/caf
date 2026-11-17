@@ -7,6 +7,11 @@ import {
   Handshake, FileText
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useTemplates } from '../hooks/useTemplates';
+import { getTemplatePreviewValues, renderBlueprint } from '../lib/blueprintPreview';
+import type { CAFTemplate } from '../types';
+import '../blueprintPaper.css';
+import 'react-quill-new/dist/quill.snow.css';
 
 // ── Types & Mock Data ─────────────────────────────────────────────────────────
 
@@ -164,6 +169,7 @@ const TYPE_CONFIG: Record<ContractType, { color: string; short: string }> = {
 
 export function ContractManager() {
   const [selected, setSelected] = useState<Contract | null>(null);
+  const [section, setSection] = useState<'contracts' | 'templates'>('templates');
 
   const stats = useMemo(() => {
     const totalValue = CONTRACTS.filter(c => c.value !== null).reduce((s, c) => s + (c.value ?? 0), 0);
@@ -178,6 +184,11 @@ export function ContractManager() {
 
   return (
     <div className="space-y-5">
+      <div className="flex gap-2 border-b border-slate-200 pb-3">
+        <button type="button" onClick={() => setSection('templates')} className={cn('rounded-lg px-4 py-2 text-sm font-semibold', section === 'templates' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100')}>Contract templates</button>
+        <button type="button" onClick={() => setSection('contracts')} className={cn('rounded-lg px-4 py-2 text-sm font-semibold', section === 'contracts' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100')}>Contract register</button>
+      </div>
+      {section === 'templates' ? <ContractTemplateLibrary /> : <>
       {/* Header */}
       <div className="flex items-center justify-between pb-1">
         <div>
@@ -284,8 +295,51 @@ export function ContractManager() {
 
       {/* Contract Detail Drawer */}
       {selected && <ContractDetailDrawer contract={selected} onClose={() => setSelected(null)} />}
+      </>}
     </div>
   );
+}
+
+function ContractTemplateLibrary() {
+  const { templates } = useTemplates();
+  const [category, setCategory] = useState('All templates');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [preview, setPreview] = useState<CAFTemplate | null>(null);
+  const categories = ['All templates', 'Subscriber agreements', 'Corporate agreements', 'Other agreements'];
+  const agreements = templates.filter(template => /agreement|contract|协议|合同/i.test(`${template.name} ${template.description}`));
+  const visible = agreements.filter(template => {
+    const matchesCategory = category === 'All templates' || (category === 'Subscriber agreements' && template.customerType === 'Individual') || (category === 'Corporate agreements' && template.customerType === 'Corporate') || (category === 'Other agreements' && !['Individual', 'Corporate'].includes(template.customerType));
+    return matchesCategory && `${template.name} ${template.id} ${template.product}`.toLowerCase().includes(query.toLowerCase());
+  });
+  const pageSize = 8;
+  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  return <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:flex lg:min-h-[650px]">
+    <aside className="border-b border-slate-200 bg-slate-50/70 p-4 lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
+      <h2 className="mb-4 px-2 text-xs font-bold uppercase tracking-wider text-slate-500">Template directory</h2>
+      <nav aria-label="Contract template categories" className="grid grid-cols-2 gap-1 lg:grid-cols-1">
+        {categories.map(item => <button key={item} type="button" onClick={() => { setCategory(item); setPage(1); }} className={cn('flex items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm', category === item ? 'bg-indigo-50 font-semibold text-indigo-700 ring-1 ring-indigo-200' : 'text-slate-600 hover:bg-white')}>
+          <span>{item}</span><span className="text-xs text-slate-400">{item === 'All templates' ? agreements.length : agreements.filter(template => item === 'Subscriber agreements' ? template.customerType === 'Individual' : item === 'Corporate agreements' ? template.customerType === 'Corporate' : !['Individual', 'Corporate'].includes(template.customerType)).length}</span>
+        </button>)}
+      </nav>
+    </aside>
+    <div className="min-w-0 flex-1 p-5 lg:p-7">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div><h2 className="text-xl font-bold text-slate-900">{category}</h2><p className="mt-1 text-sm text-slate-500">Select a template to preview the complete agreement.</p></div>
+        <label className="relative block w-full sm:w-72"><Search size={17} className="pointer-events-none absolute left-3 top-3 text-slate-400" /><input aria-label="Search contract templates" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Search templates" className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-indigo-400" /></label>
+      </div>
+      {visible.length ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        {visible.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(template => <button key={template.id} type="button" onClick={() => setPreview(template)} className="group min-w-0 text-left">
+          <div className="flex aspect-[.74] flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-100 p-3 transition-colors group-hover:border-indigo-400 group-hover:shadow-md">
+            <div className="flex h-full flex-col rounded-sm bg-white p-4 shadow-sm"><div className="mb-3 h-1 w-10 rounded-full bg-indigo-500" /><p className="line-clamp-2 text-[11px] font-bold leading-snug text-slate-800">{template.name}</p><div className="mt-3 space-y-1.5">{Array.from({ length: 6 }, (_, index) => <div key={index} className={cn('h-1 rounded bg-slate-100', index % 3 === 0 ? 'w-2/3' : index % 3 === 1 ? 'w-full' : 'w-5/6')} />)}</div><div className="mt-auto border-t border-slate-100 pt-2 text-[9px] text-slate-400">{template.id}</div></div>
+          </div><p className="mt-2 truncate text-sm font-semibold text-slate-700" title={template.name}>{template.name}</p><p className="mt-0.5 text-xs text-slate-400">{template.customerType} · v{template.version || '1.0'}</p>
+        </button>)}
+      </div> : <div className="rounded-xl border border-dashed border-slate-200 py-16 text-center text-sm text-slate-500">No contract templates found.</div>}
+      <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-4 text-sm text-slate-500"><span>{visible.length} templates</span><div className="flex items-center gap-3"><button type="button" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40">Previous</button><span>{currentPage} / {pageCount}</span><button type="button" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40">Next</button></div></div>
+    </div>
+    {preview && <PreviewDrawer label={preview.name} onClose={() => setPreview(null)}><div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4"><div><h3 className="font-semibold text-slate-900">{preview.name}</h3><p className="text-xs text-slate-500">{preview.id} · v{preview.version || '1.0'}</p></div><button type="button" aria-label="Close preview" onClick={() => setPreview(null)} className="rounded-lg p-2 hover:bg-slate-100"><X size={20} /></button></div><div className="overflow-auto bg-slate-100 p-4" dangerouslySetInnerHTML={{ __html: renderBlueprint(preview, getTemplatePreviewValues(preview), 'A4 · Portrait') }} /></PreviewDrawer>}
+  </div>;
 }
 
 // ── Contract Detail Drawer ────────────────────────────────────────────────────
