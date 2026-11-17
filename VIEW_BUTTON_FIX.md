@@ -153,7 +153,7 @@ case 'applications':
 3. 确认没有企业详情部分
 
 ### 测试场景 2：查看企业客户
-1. 点击 "Afghan Tech Solutions Ltd" 记录的查看按钮
+1. 点击 "AsiaInfo Tech Solutions Ltd" 记录的查看按钮
 2. 验证显示企业详情
 3. 确认包含公司注册号、税号等信息
 

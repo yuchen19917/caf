@@ -336,4 +336,4 @@ For issues or questions, please contact the development team.
 
 ---
 
-**© 2026 ATOMA Telecom. All rights reserved.**
+**© 2026 AsiaInfo Telecom. All rights reserved.**

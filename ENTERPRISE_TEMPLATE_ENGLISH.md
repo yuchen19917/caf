@@ -70,10 +70,10 @@
 - Company Seal (企业公章)
 
 ### 4. 页脚信息
-- ATOMA TELECOM Enterprise Service Center
+- AsiaInfo TELECOM Enterprise Service Center
 - Customer Service Hotline: +93 (0) 700-XXX-XXXX
-- Enterprise Email: enterprise@atoma.af
-- Address: Kabul Business District, Afghanistan
+- Enterprise Email: enterprise@asiainfo.com
+- Address: Kabul Business District, DMS
 - Postal Code: 1001
 
 ## 🔧 使用方法
@@ -128,7 +128,7 @@
 ## 🎨 设计特点
 
 ### 1. 专业外观
-- ATOMA品牌色 (#1229B3)
+- AsiaInfo品牌色 (#1229B3)
 - 清晰的章节划分
 - 专业的表格布局
 
@@ -154,7 +154,7 @@
 | 模板名称 | 企业宽带接入业务申请表 | Enterprise Broadband Service Application |
 | 文件名 | create-enterprise-template.html | create-enterprise-template-en.html |
 | 模板ID前缀 | TPL-ENT- | TPL-ENT-EN- |
-| 联系方式 | 中国地址和电话 | 阿富汗地址和电话 |
+| 联系方式 | 中国地址和电话 | DMS地址和电话 |
 | 法律条款 | 中文表述 | 英文表述 |
 
 ## 💾 数据持久化
@@ -256,7 +256,7 @@
 ## 📞 技术支持
 
 如有问题，请联系：
-- 邮箱: support@atoma.af
+- 邮箱: support@asiainfo.com
 - 电话: +93 (0) 700 123 456
 
 ---
@@ -267,4 +267,4 @@
 
 ---
 
-**© 2026 ATOMA Telecom. All Rights Reserved.**
+**© 2026 AsiaInfo Telecom. All Rights Reserved.**

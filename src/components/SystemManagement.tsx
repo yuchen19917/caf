@@ -1,11 +1,13 @@
+import { systemPages, type SystemPage } from '../lib/systemPages';
+import { RecordList } from './RecordList';
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Users, Shield, Key, Plus, Edit2, Trash2, Search, X, Save,
+  Users, Shield, Key, Plus, Edit2, Trash2, X, Save,
   AlertCircle, CheckCircle, GitBranch, AlertTriangle, Bell, Mail,
   Smartphone, Clock, ArrowRight, RefreshCw, Info, Settings,
   Database, Server, HardDrive, Cpu, MemoryStick, Wifi, Activity,
-  LayoutDashboard, Lock, Workflow, Code2, WifiOff, Zap, Package,
+  Code2, WifiOff, Zap, Package,
   TrendingUp, TrendingDown, Circle, BarChart2, ChevronRight,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -16,7 +18,6 @@ import {
 } from '../lib/auth';
 
 // ── Navigation Types ──────────────────────────────────────────────────────────
-type Category = 'overview' | 'business' | 'access' | 'infrastructure';
 type BusinessPage = 'approval' | 'error-codes' | 'notifications';
 type AccessPage = 'users' | 'roles' | 'permissions';
 type InfraPage = 'storage' | 'services' | 'resources';
@@ -244,18 +245,20 @@ const RCPT_STYLE: Record<RecipientGroup, string> = {
 };
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export function SystemManagement() {
+export function SystemManagement({ category, onNavigate }: {
+  category: SystemPage;
+  onNavigate: (page: SystemPage) => void;
+}) {
+  const { t } = useTranslation();
   const { i18n } = useTranslation();
 
   // Navigation
-  const [category, setCategory]     = useState<Category>('overview');
   const [bizPage, setBizPage]       = useState<BusinessPage>('approval');
   const [accessPage, setAccessPage] = useState<AccessPage>('users');
   const [infraPage, setInfraPage]   = useState<InfraPage>('storage');
 
   // Users state
   const [users, setUsers]             = useState<User[]>(PREDEFINED_USERS);
-  const [searchQuery, setSearchQuery] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -271,16 +274,14 @@ export function SystemManagement() {
 
   // Error codes state
   const [errorCodes, setErrorCodes]           = useState<ErrorCode[]>(SEED_ERRORS);
-  const [errorSearch, setErrorSearch]         = useState('');
-  const [errorCatFilter, setErrorCatFilter]   = useState<ErrCategory | 'All'>('All');
   const [editingError, setEditingError]       = useState<ErrorCode | null>(null);
 
   // Notifications state
   const [notifEvents, setNotifEvents] = useState<NotifEvent[]>(SEED_NOTIF_EVENTS);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled]     = useState(true);
-  const [senderEmail, setSenderEmail]   = useState('noreply@atoma.af');
-  const [smsGateway, setSmsGateway]     = useState('ATOMA-SMSGW-01');
+  const [senderEmail, setSenderEmail]   = useState('noreply@asiainfo.com');
+  const [smsGateway, setSmsGateway]     = useState('ASIAINFO-SMSGW-01');
   const [dailyDigest, setDailyDigest]   = useState(true);
   const [digestTime, setDigestTime]     = useState('08:00');
 
@@ -317,62 +318,10 @@ export function SystemManagement() {
     return () => clearInterval(t);
   }, [refresh]);
 
-  // Derived
-  const allOnline   = services.every((s) => s.status === 'online');
-  const anyOffline  = services.some((s) => s.status === 'offline');
-  const anyDegraded = services.some((s) => s.status === 'degraded');
-  const overallHealth: HealthStatus = anyOffline ? 'offline' : anyDegraded ? 'degraded' : 'online';
-
-  const filteredUsers = users.filter((u) =>
-    u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const filteredErrors = errorCodes.filter((ec) => {
-    const m = ec.code.toLowerCase().includes(errorSearch.toLowerCase()) || ec.message.toLowerCase().includes(errorSearch.toLowerCase());
-    return m && (errorCatFilter === 'All' || ec.category === errorCatFilter);
-  });
-
-  // ── Category cards ────────────────────────────────────────────────────────
-  const categories: { id: Category; label: string; sub: string; icon: React.ElementType; badge?: string; badgeColor?: string }[] = [
-    { id: 'overview',       label: 'Overview',        sub: 'System health snapshot',      icon: LayoutDashboard, badge: overallHealth === 'online' ? 'All systems go' : overallHealth === 'degraded' ? '1 degraded' : '1 offline', badgeColor: overallHealth === 'online' ? 'bg-emerald-100 text-emerald-700' : overallHealth === 'degraded' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700' },
-    { id: 'business',       label: 'Business Config', sub: 'Approval · errors · alerts',   icon: Workflow },
-    { id: 'access',         label: 'Access Control',  sub: 'Users · roles · permissions',  icon: Lock },
-    { id: 'infrastructure', label: 'Infrastructure',  sub: 'Storage · services · resources', icon: Server },
-  ];
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">System Configuration</h1>
-        <p className="text-sm text-slate-500 mt-1">Centralised control for business rules, access, and backend infrastructure</p>
-      </div>
+      <h1 className="text-2xl font-bold text-slate-800">{t('common.' + systemPages[category])}</h1>
 
-      {/* Category nav */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {categories.map((cat) => {
-          const Icon = cat.icon;
-          const active = category === cat.id;
-          return (
-            <button key={cat.id} type="button" onClick={() => setCategory(cat.id)}
-              className={cn('text-left p-4 rounded-xl border-2 transition-all',
-                active ? 'border-indigo-600 bg-indigo-50/40 shadow-md shadow-indigo-100' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-              )}>
-              <div className="flex items-center justify-between mb-2">
-                <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500')}>
-                  <Icon size={16} />
-                </div>
-                {cat.badge && <span className={cn('text-[9px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wider', cat.badgeColor)}>{cat.badge}</span>}
-              </div>
-              <p className={cn('text-sm font-bold', active ? 'text-indigo-700' : 'text-slate-800')}>{cat.label}</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">{cat.sub}</p>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── OVERVIEW ─────────────────────────────────────────────────────── */}
       <AnimatePresence mode="wait">
         {category === 'overview' && (
           <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-6">
@@ -421,7 +370,7 @@ export function SystemManagement() {
                       <span className="text-slate-500">Uptime</span>
                       <span className="font-bold text-emerald-600">{s.uptime}%</span>
                     </div>
-                    <button type="button" onClick={() => { setCategory('infrastructure'); setInfraPage('storage'); }}
+                    <button type="button" onClick={() => { setInfraPage('storage'); onNavigate('infrastructure'); }}
                       className="mt-3 w-full text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center justify-center gap-1 transition-colors">
                       View details <ChevronRight size={10} />
                     </button>
@@ -612,43 +561,24 @@ export function SystemManagement() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="relative flex-1 min-w-[180px] max-w-sm">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input type="text" placeholder="Search..." value={errorSearch} onChange={(e)=>setErrorSearch(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {(['All','Validation','Document','Network','System','Integration','Authentication'] as (ErrCategory|'All')[]).map((cat) => (
-                      <button key={cat} type="button" onClick={() => setErrorCatFilter(cat)}
-                        className={cn('px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all', errorCatFilter===cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}>{cat}</button>
-                    ))}
-                  </div>
                   <button type="button" onClick={() => setEditingError({id:`EC${Date.now()}`,code:'',category:'Validation',message:'',detail:'',severity:'Warning',retryable:true,active:true})}
                     className="ml-auto flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700 transition-all"><Plus size={13}/> Add Code</button>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>{['Code','Category','Message','Severity','Retry','Active',''].map((h)=>(
-                        <th key={h} className={cn('px-5 py-3 text-xs font-bold text-slate-600 uppercase', h===''||h==='Retry'||h==='Active'?'text-center':'text-left')}>{h}</th>
-                      ))}</tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredErrors.map((ec) => (
-                        <tr key={ec.id} className={cn('hover:bg-slate-50 transition-colors', !ec.active && 'opacity-50')}>
+                <RecordList<ErrorCode> rows={errorCodes} columns={['Code','Category','Message','Details','Severity','Retry','Active','Actions']}
+                  search={ec => [ec.code, ec.message, ec.detail]}
+                  filters={[{ label: 'Category', value: ec => ec.category }, { label: 'Severity', value: ec => ec.severity }]}
+                  renderRow={ec => (
+                    <tr key={ec.id} className={cn('hover:bg-slate-50 transition-colors', !ec.active && 'opacity-50')}>
                           <td className="px-5 py-3"><span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{ec.code}</span></td>
                           <td className="px-5 py-3"><span className={cn('text-[10px] font-bold uppercase px-2 py-0.5 rounded tracking-wider', CAT_STYLE[ec.category])}>{ec.category}</span></td>
-                          <td className="px-5 py-3"><p className="text-xs font-medium text-slate-800">{ec.message}</p><p className="text-[10px] text-slate-400 mt-0.5 max-w-xs truncate">{ec.detail}</p></td>
+                          <td className="px-5 py-3"><p className="text-xs font-medium text-slate-800">{ec.message}</p></td><td><span className="block max-w-xs truncate text-xs text-slate-500" title={ec.detail}>{ec.detail}</span></td>
                           <td className="px-5 py-3"><span className={cn('text-[10px] font-bold uppercase px-2 py-0.5 rounded tracking-wider', SEV_STYLE[ec.severity])}>{ec.severity}</span></td>
                           <td className="px-5 py-3 text-center">{ec.retryable?<RefreshCw size={13} className="inline text-emerald-600"/>:<X size={13} className="inline text-slate-300"/>}</td>
                           <td className="px-5 py-3 text-center"><Toggle enabled={ec.active} onChange={() => setErrorCodes((p)=>p.map((e)=>e.id===ec.id?{...e,active:!e.active}:e))} /></td>
                           <td className="px-5 py-3 text-center"><button type="button" onClick={()=>setEditingError(ec)} className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 size={13}/></button></td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredErrors.length===0 && <div className="py-10 text-center text-sm text-slate-400">No error codes match your filter</div>}
-                </div>
+                  )}
+                />
               </div>
             )}
 
@@ -770,27 +700,17 @@ export function SystemManagement() {
             {accessPage === 'users' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="relative flex-1 max-w-md">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-                    <input type="text" placeholder="Search users..." value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
-                  </div>
                   <button type="button" onClick={()=>{setEditingUser({id:`USR-${Date.now()}`,username:'',password:'',role:'agent',fullName:'',email:'',department:'',permissions:ROLE_PERMISSIONS.agent,createdAt:new Date().toISOString(),isActive:true});setIsAddingUser(true);}}
                     className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-all">
                     <Plus size={14}/> Add User
                   </button>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>{['User','Role','Department','Status',''].map((h)=>(
-                        <th key={h} className={cn('px-6 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider',h===''?'text-right':'text-left')}>{h}</th>
-                      ))}</tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {filteredUsers.map((user)=>(
-                        <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4"><p className="text-sm font-semibold text-slate-800">{user.fullName}</p><p className="text-xs text-slate-500">{user.email}</p><p className="text-xs text-slate-400 mt-0.5">@{user.username}</p></td>
+                <RecordList<User> rows={users} columns={['Name','Email','Username','Role','Department','Status','Actions']}
+                  search={user => [user.fullName, user.email, user.username, user.department]}
+                  filters={[{ label: 'Role', value: user => user.role, display: value => getRoleDisplayName(value as UserRole) }, { label: 'Status', value: user => user.isActive ? 'Active' : 'Inactive' }]}
+                  renderRow={user => (
+                    <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4"><p className="text-sm font-semibold text-slate-800">{user.fullName}</p></td><td>{user.email}</td><td>{user.username}</td>
                           <td className="px-6 py-4"><span className={cn('inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase',getRoleColor(user.role))}>{getRoleDisplayName(user.role)}</span></td>
                           <td className="px-6 py-4 text-sm text-slate-600">{user.department||'—'}</td>
                           <td className="px-6 py-4">{user.isActive?(<span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700"><CheckCircle size={11}/>Active</span>):(<span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-500">Inactive</span>)}</td>
@@ -799,11 +719,8 @@ export function SystemManagement() {
                             <button type="button" onClick={()=>setDeleteConfirm(user.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={14}/></button>
                           </div></td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredUsers.length===0&&<div className="py-12 text-center text-sm text-slate-400">No users found</div>}
-                </div>
+                  )}
+                />
               </div>
             )}
 
@@ -836,18 +753,10 @@ export function SystemManagement() {
                   <Info size={17} className="text-indigo-600 shrink-0"/>
                   <p className="text-sm text-indigo-700">Permission matrix across all roles. Changes take effect on next login.</p>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Permission</th>
-                        <th className="px-4 py-3 text-center text-xs font-bold text-rose-600 uppercase">Admin</th>
-                        <th className="px-4 py-3 text-center text-xs font-bold text-indigo-600 uppercase">Agent</th>
-                        <th className="px-4 py-3 text-center text-xs font-bold text-emerald-600 uppercase">Auditor</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {Object.keys(ROLE_PERMISSIONS.admin).map((perm)=>(
+                <RecordList rows={Object.keys(ROLE_PERMISSIONS.admin)}
+                  columns={['Permission', 'Admin', 'Agent', 'Auditor']}
+                  search={permission => [permission]}
+                  renderRow={perm => (
                         <tr key={perm} className="hover:bg-slate-50">
                           <td className="px-4 py-3 text-sm text-slate-700 font-medium">{perm}</td>
                           {(['admin','agent','auditor'] as UserRole[]).map((r)=>(
@@ -856,10 +765,8 @@ export function SystemManagement() {
                             </td>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      )}
+                />
               </div>
             )}
           </motion.div>
@@ -1061,23 +968,17 @@ export function SystemManagement() {
                 {/* Process table */}
                 <div className="bg-white rounded-xl border border-slate-200 p-6">
                   <h3 className="text-sm font-bold text-slate-800 mb-4">Active Server Processes</h3>
-                  <table className="w-full text-xs">
-                    <thead><tr className="text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-100">
-                      <th className="pb-2 text-left font-bold">Process</th>
-                      <th className="pb-2 text-right font-bold">PID</th>
-                      <th className="pb-2 text-right font-bold">CPU</th>
-                      <th className="pb-2 text-right font-bold">Memory</th>
-                      <th className="pb-2 text-right font-bold">Uptime</th>
-                    </tr></thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {[
+                  <RecordList rows={[
                         ['node server/index.mjs',   '4000', '1.2%',  '68 MB',  '3d 14h'],
                         ['postgres (main)',           '5432', '3.4%',  '182 MB', '7d 02h'],
                         ['mongod',                    '27017','2.1%',  '312 MB', '7d 02h'],
                         ['minio',                    '9000', '0.8%',  '88 MB',  '7d 02h'],
                         ['redis-server',              '6379', '0.2%',  '128 MB', '7d 02h'],
                         ['nginx',                    '80',   '0.1%',  '12 MB',  '7d 02h'],
-                      ].map(([name,pid,cpu,mem,up])=>(
+                      ]}
+                    columns={['Process', 'PID', 'CPU', 'Memory', 'Uptime']}
+                    search={row => row}
+                    renderRow={([name, pid, cpu, mem, up]) => (
                         <tr key={pid} className="hover:bg-slate-50">
                           <td className="py-2 font-mono text-slate-700">{name}</td>
                           <td className="py-2 text-right text-slate-500 font-mono">{pid}</td>
@@ -1085,9 +986,8 @@ export function SystemManagement() {
                           <td className="py-2 text-right text-slate-600">{mem}</td>
                           <td className="py-2 text-right text-emerald-600 font-medium">{up}</td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    )}
+                  />
                 </div>
               </div>
             )}

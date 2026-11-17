@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./blueprintPaper.css";
 
 /* Avoid loading fonts from fonts.googleapis.com — blocked or very slow in some networks,
    which blocks the entire stylesheet and leaves the page spinning until timeout. */
@@ -15,87 +16,36 @@
   }
 }
 
+.record-list-table > thead > tr > th,
+.record-list-table > tbody > tr > td {
+  padding: 0.75rem 1rem;
+}
+
+.record-list-table > thead > tr > th {
+  text-align: start;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
 /* Custom styles for ReactQuill and PDF Preview */
 .ql-custom-container .ql-editor {
   min-height: 150px;
   max-height: 300px;
 }
 
-/* Modal create/edit: bounded editor with internal scroll (root is .quill from react-quill) */
-.ql-modal-editor.quill {
+/* Keep the toolbar visible while the template body scrolls. */
+.ql-workspace-editor.quill {
   display: flex;
   flex-direction: column;
-  max-height: min(360px, 45vh);
 }
-.ql-modal-editor .ql-toolbar {
+.ql-workspace-editor .ql-toolbar {
   flex-shrink: 0;
 }
-.ql-modal-editor .ql-container {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.ql-modal-editor .ql-editor {
-  flex: 1 1 auto;
-  min-height: 140px;
-  max-height: none !important;
+.ql-workspace-editor .ql-editor {
+  height: clamp(280px, 49dvh, 760px);
+  max-height: none;
+  font-size: 0.9375rem;
   overflow-y: auto;
-}
-
-.ql-editor-xl .ql-editor {
-  min-height: 70vh !important;
-  font-size: 1rem;
-  padding: 3rem !important;
-}
-
-.prose-blueprint {
-  color: #1e293b;
-  font-size: 0.7rem;
-  line-height: 1.5;
-}
-
-.prose-blueprint h2 {
-  font-size: 0.9rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: #0f172a;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 0.25rem;
-}
-
-.prose-blueprint p {
-  margin-bottom: 0.5rem;
-}
-
-.prose-blueprint ul, .prose-blueprint ol {
-  margin-bottom: 1rem;
-  padding-left: 1.25rem;
-}
-
-.prose-blueprint li {
-  margin-bottom: 0.25rem;
-}
-
-.prose-blueprint table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-}
-
-.prose-blueprint th, .prose-blueprint td {
-  border: 1px solid #e2e8f0;
-  padding: 0.5rem;
-  text-align: left;
-}
-
-.prose-blueprint th {
-  background-color: #f8fafc;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.6rem;
 }
 

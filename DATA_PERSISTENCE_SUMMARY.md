@@ -376,4 +376,4 @@ useEffect(() => {
 
 ---
 
-**© 2026 ATOMA Telecom. All Rights Reserved.**
+**© 2026 AsiaInfo Telecom. All Rights Reserved.**

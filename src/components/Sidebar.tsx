@@ -1,7 +1,8 @@
+import { systemPages } from '../lib/systemPages';
 import React from 'react';
 import {
   LayoutDashboard, FileText, FolderOpen, ShieldCheck,
-  Settings, X, LogOut, PlusCircle, Layers, Network,
+  Workflow, Lock, Server, X, LogOut, PlusCircle, Layers, Network,
   ShieldAlert, MapPin, Briefcase
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -80,9 +81,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, on
       )}>
         {/* Logo */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
-          <img src="/logo.svg" alt="ATOMA" className="h-7 w-auto" />
+          <img src="/logo.svg" alt="AsiaInfo" className="h-7 w-auto" />
           <div>
-            <p className="text-xs font-bold text-gray-800 leading-none">ATOMA</p>
+            <p className="text-xs font-bold text-gray-800 leading-none">AsiaInfo</p>
             <p className="text-[10px] text-gray-400 leading-none mt-0.5">CAF System</p>
           </div>
           <button className="ml-auto lg:hidden p-1 text-gray-400" onClick={() => setIsOpen(false)}>
@@ -157,18 +158,20 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, on
               <p className="px-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                 {t('sidebar.system_section')}
               </p>
-              <button
-                onClick={() => navTo('system-management')}
-                className={cn(
-                  'w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors text-left',
-                  activeTab === 'system-management'
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                )}
-              >
-                <Settings size={15} className={activeTab === 'system-management' ? 'text-blue-600' : 'text-gray-400'} />
-                {t('common.system_management')}
-              </button>
+              {([
+                [systemPages.overview, LayoutDashboard],
+                [systemPages.business, Workflow],
+                [systemPages.access, Lock],
+                [systemPages.infrastructure, Server],
+              ] as const).map(([page, Icon]) => (
+                <button key={page} type="button" onClick={() => navTo(page)}
+                  aria-current={activeTab === page ? 'page' : undefined}
+                  className={cn('w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors text-left',
+                    activeTab === page ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900')}>
+                  <Icon size={15} className={activeTab === page ? 'text-blue-600' : 'text-gray-400'} />
+                  {t('common.' + page)}
+                </button>
+              ))}
             </div>
           )}
         </nav>

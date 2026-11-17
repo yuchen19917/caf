@@ -473,4 +473,4 @@ const handleLogin = (e: React.FormEvent) => {
 **版本:** 1.0  
 **状态:** ✅ 完成  
 
-**© 2026 ATOMA Telecom. All Rights Reserved.**
+**© 2026 AsiaInfo Telecom. All Rights Reserved.**

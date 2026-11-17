@@ -1,4 +1,4 @@
-/** PC CARE full-page CAF HTML (logo URL injected at runtime). */
+/** AsiaInfo full-page CAF HTML (logo URL injected at runtime). */
 
 function cafGridRow(label: string, boxCount: number, opts?: { labelWidth?: string; rowspan?: number }): string {
   const lw = opts?.labelWidth ?? '24%';
@@ -87,10 +87,10 @@ export function buildPccareCafTermsHtml(logoUrl: string): string {
   <table role="presentation" style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:6px;">
     <tr>
       <td style="width:34%;vertical-align:top;border-right:1px solid #000;padding:6px;">
-        <div style="font-weight:900;font-size:8px;line-height:1.25;margin-bottom:4px;">PC CARE AIRWAY INFRATEL PRIVATE LIMITED</div>
-        <div style="font-size:6.5px;margin-bottom:2px;">CIN: U64204MP2017PTC043127</div>
-        <div style="font-size:6.5px;margin-bottom:2px;">House No.-23, Viveka Nand Colony, Jiwaji University Road, Gwalior-474011 (M.P.)</div>
-        <div style="font-size:6.5px;">E-Mail:- info@pccareonline.in, www.airwaybroadband.com</div>
+        <div style="font-weight:900;font-size:8px;line-height:1.25;margin-bottom:4px;">AsiaInfo</div>
+        <div style="font-size:6.5px;margin-bottom:2px;">CIN: XXXXXXXXXXXXXXXXXXXXX</div>
+        <div style="font-size:6.5px;margin-bottom:2px;">AsiaInfo Customer Service Center</div>
+        <div style="font-size:6.5px;">E-Mail:- info@asiainfo.com, www.asiainfo.com</div>
       </td>
       <td style="width:32%;vertical-align:middle;text-align:center;border-right:1px solid #000;padding:6px;">
         <img src="${logoUrl}" alt="" style="max-height:52px;width:auto;max-width:100%;display:block;margin:0 auto;" />
@@ -200,7 +200,7 @@ export function buildPccareCafTermsHtml(logoUrl: string): string {
   <table role="presentation" style="width:100%;border-collapse:collapse;border:1px solid #000;">
     <tr>
       <td style="width:58%;border:1px solid #000;padding:8px;vertical-align:top;font-size:6.5px;line-height:1.45;">
-        I declare that all the information submitted by me in this Customer Application Form is true, correct and complete to the best of my knowledge and belief. I understand that services may be provisioned based on this information and that any misrepresentation may result in termination or regulatory action. I agree to abide by the applicable tariff, fair usage, payment and network policies of PC CARE AIRWAY INFRATEL PRIVATE LIMITED / Airway Broadband as amended from time to time.<br/><br/>
+        I declare that all the information submitted by me in this Customer Application Form is true, correct and complete to the best of my knowledge and belief. I understand that services may be provisioned based on this information and that any misrepresentation may result in termination or regulatory action. I agree to abide by the applicable tariff, fair usage, payment and network policies of AsiaInfo as amended from time to time.<br/><br/>
         Subscriber / Authorized representative: <strong>{{fullName}}</strong>
       </td>
       <td style="border:1px solid #000;padding:10px;vertical-align:bottom;text-align:center;font-size:6.5px;font-weight:700;min-height:120px;">

@@ -524,4 +524,4 @@ A: 对于大多数使用场景是够用的：
 **文档版本:** 1.0  
 **最后更新:** 2026年5月6日  
 
-**© 2026 ATOMA Telecom. All Rights Reserved.**
+**© 2026 AsiaInfo Telecom. All Rights Reserved.**

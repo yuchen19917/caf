@@ -1,4 +1,4 @@
-# ATOMA CAF 管理系统 - 用户操作指南
+# AsiaInfo CAF 管理系统 - 用户操作指南
 
 ## 📋 目录
 1. [系统登录](#系统登录)
@@ -542,10 +542,10 @@ JSON.parse(localStorage.getItem('global_rules_v1'))
 ## 技术支持
 
 如有问题，请联系:
-- 邮箱: support@atoma.af
+- 邮箱: support@asiainfo.com
 - 电话: +93 (0) 700 123 456
 - 工作时间: 周一至周五 9:00-18:00
 
 ---
 
-**© 2026 ATOMA Telecom. Regulatory CAF System.**
+**© 2026 AsiaInfo Telecom. Regulatory CAF System.**

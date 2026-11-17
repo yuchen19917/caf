@@ -449,4 +449,4 @@ testFileUpload.runAll()
 **最后更新:** 2026年5月6日  
 **状态:** ✅ 完成  
 
-**© 2026 ATOMA Telecom. All Rights Reserved.**
+**© 2026 AsiaInfo Telecom. All Rights Reserved.**

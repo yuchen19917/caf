@@ -382,4 +382,4 @@ All functionality has been implemented and tested successfully.
 **Status:** ✅ Complete  
 **Version:** 1.0  
 
-**© 2026 ATOMA Telecom. All Rights Reserved.**
+**© 2026 AsiaInfo Telecom. All Rights Reserved.**

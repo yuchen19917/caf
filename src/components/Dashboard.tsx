@@ -1,185 +1,145 @@
-import React, { useMemo } from 'react';
-import { FileText, Clock, CheckCircle2, XCircle, Archive, User, Building2 } from 'lucide-react';
-import { useApplications } from '../context/ApplicationContext';
-import { cn } from '../lib/utils';
+import { useState, type ReactNode } from 'react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useApplications } from '../context/ApplicationContext';
+import { hasPermission, type User } from '../lib/auth';
+import { cn, wasSubmittedToday } from '../lib/utils';
+import type { CAFStatus, CustomerApplicationForm } from '../types';
 
-const STATUS_STYLES: Record<string, { dot: string; badge: string; label: string }> = {
-  Pending:    { dot: 'bg-amber-400',  badge: 'bg-amber-50 text-amber-700 border-amber-200',  label: 'Pending'    },
-  Approved:   { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700 border-green-200',  label: 'Approved'   },
-  Rejected:   { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 border-red-200',        label: 'Rejected'   },
-  Correction: { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-700 border-blue-200',     label: 'Correction' },
-  Archived:   { dot: 'bg-gray-400',   badge: 'bg-gray-50 text-gray-600 border-gray-200',     label: 'Archived'   },
-  Draft:      { dot: 'bg-slate-300',  badge: 'bg-slate-50 text-slate-500 border-slate-200',  label: 'Draft'      },
-};
+export type ApplicationShortcut = 'today' | 'Archived' | 'Correction';
+type Task = 'Pending' | 'Correction';
 
-export default function Dashboard({ user }: { user: any }) {
-  const { getFilteredCAFs, loading } = useApplications();
-  const { t } = useTranslation();
-
-  const cafs = useMemo(() => (user ? getFilteredCAFs(user) : []), [getFilteredCAFs, user]);
-
-  const stats = useMemo(() => ({
-    total:      cafs.length,
-    pending:    cafs.filter(c => c.status === 'Pending').length,
-    approved:   cafs.filter(c => c.status === 'Approved').length,
-    rejected:   cafs.filter(c => c.status === 'Rejected').length,
-    correction: cafs.filter(c => c.status === 'Correction').length,
-    archived:   cafs.filter(c => c.status === 'Archived').length,
-    individual: cafs.filter(c => c.customerType === 'Individual').length,
-    corporate:  cafs.filter(c => c.customerType === 'Corporate').length,
-  }), [cafs]);
-
-  const recentCAFs = useMemo(() =>
-    [...cafs]
-      .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
-      .slice(0, 8),
-    [cafs]
+function WorkTable({ columns, children, empty }: { columns: string[]; children: ReactNode; empty?: string }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="record-list-table w-full border-collapse whitespace-nowrap text-start text-sm">
+        <thead className="border-y border-slate-200 bg-slate-50">
+          <tr>{columns.map(column => <th key={column} scope="col">{column}</th>)}</tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {empty ? <tr><td colSpan={columns.length} className="text-center text-slate-500">{empty}</td></tr> : children}
+        </tbody>
+      </table>
+    </div>
   );
+}
 
-  const distribution = useMemo(() => {
-    const total = stats.total || 1;
-    return [
-      { labelKey: 'dashboard.status_pending',    value: stats.pending,    pct: stats.pending / total * 100,    bar: 'bg-amber-400' },
-      { labelKey: 'dashboard.status_approved',   value: stats.approved,   pct: stats.approved / total * 100,   bar: 'bg-green-500' },
-      { labelKey: 'dashboard.status_archived',   value: stats.archived,   pct: stats.archived / total * 100,   bar: 'bg-gray-300'  },
-      { labelKey: 'dashboard.status_correction', value: stats.correction, pct: stats.correction / total * 100, bar: 'bg-blue-400'  },
-      { labelKey: 'dashboard.status_rejected',   value: stats.rejected,   pct: stats.rejected / total * 100,   bar: 'bg-red-400'   },
-    ];
-  }, [stats]);
-
-  if (loading) return <div className="flex items-center justify-center h-48 text-sm text-gray-500">Loading…</div>;
-
-  if (cafs.length === 0 && user?.role === 'agent') {
-    return (
-      <div className="border border-dashed border-gray-300 rounded-lg p-12 text-center">
-        <FileText size={32} className="mx-auto text-gray-300 mb-3" />
-        <p className="text-sm font-medium text-gray-600">{t('dashboard.no_cafs')}</p>
-        <p className="text-xs text-gray-400 mt-1">{t('dashboard.first_caf_hint')}</p>
-      </div>
-    );
-  }
+export default function Dashboard({ user, onNew, onView, onCorrect, onReview, onApplications }: {
+  user: User;
+  onNew: () => void;
+  onView: (caf: CustomerApplicationForm) => void;
+  onCorrect: (caf: CustomerApplicationForm) => void;
+  onReview: (id?: string) => void;
+  onApplications: (filter?: ApplicationShortcut) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const { getFilteredCAFs, loading } = useApplications();
+  const canReview = hasPermission(user, 'viewAuditQueue');
+  const canCreate = hasPermission(user, 'createCAF');
+  const [task, setTask] = useState<Task>(canReview ? 'Pending' : 'Correction');
+  const cafs = getFilteredCAFs(user);
+  const pending = cafs.filter(caf => caf.status === 'Pending');
+  const corrections = cafs.filter(caf => caf.status === 'Correction' &&
+    (caf.createdBy === user.id || caf.createdByUsername === user.username));
+  const sorted = [...cafs].sort((a, b) => Date.parse(b.submissionDate) - Date.parse(a.submissionDate));
+  const recent = sorted.slice(0, 5);
+  const tasks = (task === 'Pending' ? pending : corrections).slice()
+    .sort((a, b) => Date.parse(a.history?.at(-1)?.at ?? a.submissionDate) - Date.parse(b.history?.at(-1)?.at ?? b.submissionDate))
+    .slice(0, 5);
+  const action = 'inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline';
+  const status = (value: CAFStatus) => t('caf_list.status_' + value.toLowerCase(), { defaultValue: value });
+  const metrics = [
+    { label: status('Pending'), count: pending.length, click: canReview ? () => setTask('Pending') : undefined },
+    { label: status('Correction'), count: corrections.length, click: canCreate ? () => setTask('Correction') : undefined },
+    { label: t('dashboard.today_submitted'), count: cafs.filter(wasSubmittedToday).length, click: () => onApplications('today') },
+    { label: status('Archived'), count: cafs.filter(caf => caf.status === 'Archived').length, click: () => onApplications('Archived') },
+  ];
+  const commonColumns = [t('document_library.caf_number'), t('caf_list.col_customer'), t('record_list.service')];
+  const actionColumn = t('templates_page.table_actions');
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-1">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.ops_title')}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{t('dashboard.ops_subtitle')}</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('dashboard.workbench')}</h1>
+          <p className="mt-1 text-sm text-slate-500">{t('dashboard.workbench_description')}</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 bg-white border border-gray-200 rounded px-2.5 py-1.5">
-          <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-          {t('dashboard.all_systems_ok')}
-        </div>
-      </div>
+        {canCreate && <button type="button" onClick={onNew}
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+          <Plus size={16} /> {t('common.new_caf')}
+        </button>}
+      </header>
 
-      {/* Primary KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { labelKey: 'dashboard.total_applications', value: stats.total,    Icon: FileText,     accent: 'border-l-blue-500'  },
-          { labelKey: 'dashboard.pending_review',     value: stats.pending,  Icon: Clock,        accent: 'border-l-amber-400' },
-          { labelKey: 'dashboard.approved',           value: stats.approved, Icon: CheckCircle2, accent: 'border-l-green-500' },
-          { labelKey: 'dashboard.rejected',           value: stats.rejected, Icon: XCircle,      accent: 'border-l-red-400'   },
-        ].map(({ labelKey, value, Icon, accent }) => (
-          <div key={labelKey} className={cn('bg-white border border-gray-200 border-l-4 rounded-lg p-4', accent)}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs text-gray-500">{t(labelKey)}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-              </div>
-              <Icon size={15} className="text-gray-300 mt-0.5" />
-            </div>
+      <dl className="grid grid-cols-2 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-white sm:grid-cols-4">
+        {metrics.map(metric => (
+          <div key={metric.label} className="px-4 py-3">
+            <dt className="text-sm text-slate-600">{metric.label}</dt>
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+              {metric.click ? <button type="button" onClick={metric.click} aria-label={metric.label}
+                className="rounded hover:text-indigo-700">{loading ? '—' : metric.count}</button> : loading ? '—' : metric.count}
+            </dd>
           </div>
         ))}
-      </div>
+      </dl>
 
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { labelKey: 'dashboard.correction_needed',  value: stats.correction, Icon: Clock,     color: 'text-blue-500'   },
-          { labelKey: 'dashboard.archived',           value: stats.archived,   Icon: Archive,   color: 'text-gray-400'   },
-          { labelKey: 'dashboard.individual_customers', value: stats.individual, Icon: User,    color: 'text-indigo-500' },
-          { labelKey: 'dashboard.corporate_accounts', value: stats.corporate,  Icon: Building2, color: 'text-violet-500' },
-        ].map(({ labelKey, value, Icon, color }) => (
-          <div key={labelKey} className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3">
-            <Icon size={15} className={color} />
-            <div>
-              <p className="text-xs text-gray-500">{t(labelKey)}</p>
-              <p className="text-lg font-semibold text-gray-900">{value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Bottom panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Distribution */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('dashboard.status_distribution')}</p>
-          </div>
-          <div className="p-4 space-y-3">
-            {distribution.map(row => (
-              <div key={row.labelKey}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-600">{t(row.labelKey)}</span>
-                  <span className="text-xs font-medium text-gray-800">
-                    {row.value} <span className="text-gray-400 font-normal text-[11px]">({row.pct.toFixed(0)}%)</span>
-                  </span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={cn('h-full rounded-full', row.bar)} style={{ width: `${row.pct}%` }} />
-                </div>
-              </div>
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+          <h2 className="font-semibold text-slate-900">{t('dashboard.my_tasks')}</h2>
+          {(canReview || canCreate) && <button type="button" className={action}
+            onClick={() => task === 'Pending' ? onReview() : onApplications('Correction')}>
+            {t('dashboard.all_tasks')} <ArrowRight size={15} />
+          </button>}
+        </header>
+        <div className="flex gap-2 px-4 pb-3">
+          {([['Pending', pending.length, canReview], ['Correction', corrections.length, canCreate]] as const)
+            .filter(([, , allowed]) => allowed)
+            .map(([value, count]) => (
+              <button key={value} type="button" aria-pressed={task === value} onClick={() => setTask(value)}
+                className={cn('rounded-lg px-3 py-1.5 text-sm font-medium', task === value ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50')}>
+                {status(value)} · {count}
+              </button>
             ))}
-            <div className="pt-2 border-t border-gray-100 flex justify-between text-xs text-gray-500">
-              <span>{t('dashboard.total_records')}</span>
-              <span className="font-semibold text-gray-700">{stats.total}</span>
-            </div>
-          </div>
         </div>
+        <WorkTable columns={[...commonColumns, t('dashboard.waiting'), actionColumn]}
+          empty={loading ? t('dashboard.workbench_loading') : tasks.length ? undefined : t('dashboard.no_tasks')}>
+          {tasks.map(caf => {
+            const since = caf.history?.at(-1)?.at ?? caf.submissionDate;
+            const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(since)) / 60000));
+            const [unit, count] = minutes >= 1440 ? ['day', Math.floor(minutes / 1440)] :
+              minutes >= 60 ? ['hour', Math.floor(minutes / 60)] : ['minute', minutes];
+            return (
+              <tr key={caf.id}>
+                <td>{caf.id}</td><td className="font-medium">{caf.fullName}</td><td>{caf.serviceType}</td>
+                <td>{Number.isFinite(count) ? new Intl.NumberFormat(i18n.language, { style: 'unit', unit }).format(count) : '—'}</td>
+                <td><button type="button" className={action} onClick={() => task === 'Pending' ? onReview(caf.id) : onCorrect(caf)}>
+                  {t(task === 'Pending' ? 'dashboard.review_task' : 'caf_list.correct_submission')} <ArrowRight size={15} />
+                </button></td>
+              </tr>
+            );
+          })}
+        </WorkTable>
+      </section>
 
-        {/* Recent applications */}
-        <div className="lg:col-span-3 bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('dashboard.recent_applications')}</p>
-            <span className="text-xs text-gray-400">{t('dashboard.entries_count', { count: recentCAFs.length })}</span>
-          </div>
-          {recentCAFs.length === 0 ? (
-            <div className="p-8 text-center text-xs text-gray-400">{t('dashboard.no_apps_found')}</div>
-          ) : (
-            <table className="w-full text-sm">
-              <tbody className="divide-y divide-gray-50">
-                {recentCAFs.map(caf => {
-                  const s = STATUS_STYLES[caf.status] || STATUS_STYLES.Draft;
-                  return (
-                    <tr key={caf.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-2.5 w-4">
-                        <span className={cn('w-2 h-2 rounded-full block', s.dot)} />
-                      </td>
-                      <td className="py-2.5 pr-3">
-                        <p className="text-sm font-medium text-gray-800 truncate max-w-[160px]">{caf.fullName}</p>
-                        <p className="text-xs text-gray-400">{caf.id}</p>
-                      </td>
-                      <td className="py-2.5 pr-3 hidden md:table-cell">
-                        <p className="text-xs text-gray-600">{caf.serviceType}</p>
-                        <p className="text-xs text-gray-400">{caf.customerType}</p>
-                      </td>
-                      <td className="py-2.5 pr-4 text-right">
-                        <span className={cn('text-[11px] font-medium px-1.5 py-0.5 rounded border', s.badge)}>{s.label}</span>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {new Date(caf.submissionDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                        </p>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+          <h2 className="font-semibold text-slate-900">{t('dashboard.recent_applications')}</h2>
+          <button type="button" className={action} onClick={() => onApplications()}>
+            {t('dashboard.all_applications')} <ArrowRight size={15} />
+          </button>
+        </header>
+        <WorkTable columns={[...commonColumns, t('caf_list.col_submitted'), t('caf_list.col_status'), actionColumn]}
+          empty={loading ? t('dashboard.workbench_loading') : recent.length ? undefined : t('dashboard.no_apps_found')}>
+          {recent.map(caf => (
+            <tr key={caf.id}>
+              <td>{caf.id}</td><td className="font-medium">{caf.fullName}</td><td>{caf.serviceType}</td>
+              <td>{new Date(caf.submissionDate).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}</td>
+              <td><span className={cn('rounded px-2 py-1 text-xs font-semibold', caf.status === 'Correction' ? 'bg-amber-50 text-amber-800' :
+                caf.status === 'Archived' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700')}>{status(caf.status)}</span></td>
+              <td><button type="button" className={action} onClick={() => onView(caf)}>{t('caf_list.view_detail')}</button></td>
+            </tr>
+          ))}
+        </WorkTable>
+      </section>
     </div>
   );
 }

@@ -261,4 +261,4 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ---
 
-**© 2026 ATOMA Telecom. All rights reserved.**
+**© 2026 AsiaInfo Telecom. All rights reserved.**

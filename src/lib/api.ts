@@ -1,4 +1,11 @@
-import type { CustomerApplicationForm, CAFTemplate } from '../types';
+import type { CustomerApplicationForm, CAFTemplate, PrepaidTemplate } from '../types';
+import type { ArchivedLibraryFile } from '../context/ApplicationContext';
+
+export const prepaidTemplateApi = {
+  get: (signal?: AbortSignal) => request<PrepaidTemplate>('/prepaid-template', { signal }),
+  publish: (draft: PrepaidTemplate) =>
+    request<PrepaidTemplate>('/prepaid-template', { method: 'PUT', body: JSON.stringify(draft) }),
+};
 
 const BASE = '/api';
 
@@ -22,7 +29,8 @@ export const cafApi = {
   update: (id: string, data: Partial<CustomerApplicationForm>) =>
     request<CustomerApplicationForm>(`/cafs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   archive: (id: string) =>
-    request<{ caf: CustomerApplicationForm; entry: any }>(`/cafs/${id}/archive`, { method: 'POST' }),
+    request<{ caf: CustomerApplicationForm; entry: ArchivedLibraryFile | null }>(`/cafs/${id}/archive`, { method: 'POST' }),
+  approve: (id: string) => request<CustomerApplicationForm>(`/cafs/${id}/approve`, { method: 'POST' }),
   remove: (id: string) =>
     request<{ ok: boolean }>(`/cafs/${id}`, { method: 'DELETE' }),
 };

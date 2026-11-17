@@ -1,3 +1,6 @@
+import { renderBlueprint, getTemplatePreviewValues } from '../lib/blueprintPreview';
+import { PreviewDrawer } from './PreviewDrawer';
+import { RecordList } from './RecordList';
 import React, { useState, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -5,39 +8,42 @@ import {
   Plus, 
   Edit2, 
   Trash2, 
-  Search, 
-  Filter,
   MoreVertical,
-  Activity,
   Globe,
-  Users,
   Building2,
   X,
   Eye,
-  Clock,
   FileText,
   Maximize2,
-  Minimize2,
   User,
   Hash,
   MapPin,
   Calendar,
-  Zap,
-  PlusCircle,
   Mail,
   Package,
   CreditCard,
   Download,
+  Settings,
 } from 'lucide-react';
 import { useTemplates } from '../hooks/useTemplates';
+import { PrepaidTemplateEditor } from './PrepaidTemplateEditor';
 import { cn } from '../lib/utils';
 import { CAFTemplate, CustomerType } from '../types';
-import { getActiveGlobalRules } from '../lib/globalRulesData';
 import ReactQuill from 'react-quill-new';
 import type { TFunction } from 'i18next';
 import 'react-quill-new/dist/quill.snow.css';
 
 const QuillEditor = ReactQuill as any;
+const richTextModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }, { size: ['small', false, 'large', 'huge'] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: [] }, { background: [] }],
+    [{ align: [] }, { direction: 'rtl' }, { indent: '-1' }, { indent: '+1' }],
+    [{ list: 'ordered' }, { list: 'bullet' }, 'blockquote'],
+    ['link', 'clean'],
+  ],
+};
 
 function channelLabel(channel: string, t: TFunction): string {
   if (channel === 'Direct') return t('templates_page.channel_direct');
@@ -56,15 +62,19 @@ function fieldTypeLabel(type: string, t: TFunction): string {
   return t(`templates_page.field_type_${type}`, { defaultValue: type });
 }
 
-export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: () => void } = {}) {
+export function TemplateManagement({ onOpenGlobalRules, canPublishPrepaid = false }: {
+  onOpenGlobalRules?: () => void;
+  canPublishPrepaid?: boolean;
+} = {}) {
   const { t, i18n } = useTranslation();
   const { templates, setTemplates } = useTemplates();
-  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isViewPreviewMaximized, setIsViewPreviewMaximized] = useState(false);
+  const [showPrepaidRules, setShowPrepaidRules] = useState(false);
+  const [showPreviewDetails, setShowPreviewDetails] = useState(false);
+  const [previewZoom, setPreviewZoom] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [showEditorPreview, setShowEditorPreview] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<CAFTemplate | null>(null);
   const quillRef = useRef<ReactQuill>(null);
@@ -101,6 +111,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
   );
 
   const handleOpenCreate = () => {
+    setShowEditorPreview(false);
     setIsEditing(false);
     setSelectedTemplate(null);
     setNewTemplate({
@@ -118,10 +129,11 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
 
   const closeViewModal = () => {
     setIsViewModalOpen(false);
-    setIsViewPreviewMaximized(false);
+    setShowPreviewDetails(false);
   };
 
   const handleOpenEdit = (tpl: CAFTemplate) => {
+    setShowEditorPreview(false);
     setIsEditing(true);
     setSelectedTemplate(tpl);
     setNewTemplate({
@@ -137,7 +149,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
     });
     setIsModalOpen(true);
     setIsViewModalOpen(false);
-    setIsViewPreviewMaximized(false);
+    setShowPreviewDetails(false);
   };
 
   const handleDeleteTemplate = (tpl: CAFTemplate, e?: React.MouseEvent) => {
@@ -147,7 +159,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
     if (selectedTemplate?.id === tpl.id) {
       setSelectedTemplate(null);
       setIsViewModalOpen(false);
-      setIsViewPreviewMaximized(false);
+      setShowPreviewDetails(false);
       if (isEditing) {
         setIsModalOpen(false);
         setIsEditing(false);
@@ -205,87 +217,32 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
   };
 
   const insertVariable = (key: string) => {
-    if (quillRef.current) {
-      const quill = quillRef.current.getEditor();
-      const range = quill.getSelection();
+    const editor = quillRef.current;
+    if (editor) {
+      const quill = editor.getEditor();
+      const range = quill.getSelection(true);
       const insertText = `{{${key}}}`;
       if (range) {
-        quill.insertText(range.index, insertText);
+        quill.insertText(range.index, insertText, 'user');
+        quill.setSelection(range.index + insertText.length, 0);
       } else {
-        quill.insertText(quill.getLength() - 1, insertText);
+        quill.insertText(quill.getLength() - 1, insertText, 'user');
       }
     }
   };
 
-  const mapPreviewData = (html: string) => {
-    if (!html) return '';
-    let content = html;
-    content = content.replace(/{{fullName}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">M. OMAR KHAN</span>');
-    content = content.replace(/{{idNumber}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">AZ-10029388</span>');
-    content = content.replace(/{{contactNumber}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">+93 78 000 1111</span>');
-    content = content.replace(/{{address}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Kabul, District 4, House 22</span>');
-    content = content.replace(/{{submissionDate}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">May 05, 2024</span>');
-    content = content.replace(/{{idType}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Tazkira</span>');
-    content = content.replace(/{{email}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">subscriber@example.com</span>');
-    content = content.replace(/{{billingAddress}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Same as residential / PO Box 100</span>');
-    content = content.replace(/{{planName}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Elite Plus 50GB</span>');
-    content = content.replace(/{{serviceType}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Prepaid Mobile Data</span>');
-    content = content.replace(/{{serviceDelivery}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Physical SIM · Standard delivery</span>');
-    content = content.replace(/{{activationFee}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">USD 2.00</span>');
-    content = content.replace(/{{monthlyFee}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">USD 15.00 / 30 days</span>');
-    content = content.replace(/{{billingCycle}}/g, '<span class="bg-indigo-50 text-indigo-700 px-1 rounded font-bold underline decoration-indigo-200">Monthly (auto-renew)</span>');
-    return content;
-  };
+  function insertPageBreak() {
+    const editor = quillRef.current?.getEditor();
+    if (!editor) return;
+    const position = editor.getSelection(true)?.index ?? editor.getLength() - 1;
+    const marker = '\n{{pageBreak}}\n';
+    editor.insertText(position, marker, {}, 'user');
+    editor.setSelection(position + marker.length, 0);
+  }
 
-  const renderBlueprintPreview = (tpl: CAFTemplate, variant: 'modal' | 'fullscreen' = 'modal') => {
-    const previewHtml = mapPreviewData(tpl.termsAndConditions || '');
-    return (
-      <div
-        className={cn(
-          'bg-white border-2 border-slate-200 rounded-lg shadow-sm relative',
-          variant === 'modal' && 'min-h-[400px]',
-          variant === 'fullscreen' && 'shadow-xl min-h-0',
-          tpl.isFullPageTerms ? 'p-4 overflow-x-auto' : 'p-8 md:p-12'
-        )}
-      >
-        {!tpl.isFullPageTerms && (
-          <>
-            <div className="border-b-2 border-slate-900 pb-6 mb-8 flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 italic">{t('templates_page.sample_brand_title')}</h2>
-                <p className="text-[8px] font-bold text-slate-400 uppercase">{t('templates_page.sample_brand_subtitle')}</p>
-              </div>
-              <div className="w-24 h-24 border-2 border-slate-200 rounded flex items-center justify-center text-[8px] font-bold text-slate-300 text-center uppercase p-2">
-                {t('templates_page.paste_photo')}
-              </div>
-            </div>
-          </>
-        )}
-
-        <div
-          className={cn(
-            'prose-blueprint ql-editor !p-0',
-            tpl.isFullPageTerms && 'caf-full-page-terms text-[8px] leading-snug',
-            variant === 'fullscreen' && !tpl.isFullPageTerms && 'text-sm'
-          )}
-          dangerouslySetInnerHTML={{ __html: previewHtml }}
-        />
-
-        {!tpl.isFullPageTerms && (
-          <div className="mt-12 pt-12 border-t border-slate-200 grid grid-cols-2 gap-12">
-            <div className="space-y-4">
-              <div className="h-10 border-b border-slate-300"></div>
-              <p className="text-[8px] font-bold text-slate-400 uppercase">{t('templates_page.sig_seal')}</p>
-            </div>
-            <div className="space-y-4">
-              <div className="h-10 border-b border-slate-300"></div>
-              <p className="text-[8px] font-bold text-slate-400 uppercase">{t('templates_page.sig_date')}</p>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
+  const renderBlueprintPreview = (tpl: CAFTemplate) => (
+    <div dangerouslySetInnerHTML={{ __html: renderBlueprint(tpl, getTemplatePreviewValues(tpl), t('templates_page.paper_format')) }} />
+  );
 
   const handleSaveTemplate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -306,10 +263,15 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
       const template: CAFTemplate = {
         ...newTemplate,
         id: `TPL-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        version: '1.0',
+        lifecycle: 'active',
         lastModified: new Date().toISOString(),
         fields: [
-          { id: 'f1', label: t('templates_page.var_fullName'), type: 'text', required: true },
-          { id: 'f2', label: t('templates_page.var_idNumber'), type: 'text', required: true },
+          { id: 'fullName', label: t('templates_page.var_fullName'), type: 'text', required: true },
+          { id: 'idType', label: t('templates_page.var_idType'), type: 'select', required: true, options: ['National ID', 'Tazkira', 'Passport'] },
+          { id: 'idNumber', label: t('templates_page.var_idNumber'), type: 'text', required: true },
+          { id: 'contactNumber', label: t('templates_page.var_contactNumber'), type: 'text', required: true },
+          { id: 'address', label: t('templates_page.var_address'), type: 'textarea', required: true },
         ],
         isActive: true,
       } as CAFTemplate;
@@ -331,140 +293,53 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
   };
 
 
-  const filteredTemplates = templates.filter(tpl => 
-    tpl.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tpl.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tpl.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tpl.businessType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const templateStatCounts = useMemo(
-    () => ({
-      activeTemplates: templates.filter((x) => x.isActive).length,
-      individual: templates.filter((x) => x.customerType === 'Individual').length,
-      corporate: templates.filter((x) => x.customerType === 'Corporate').length,
-      globalRulesActive: getActiveGlobalRules().length,
-    }),
-    [templates]
-  );
-
   return (
-    <div className="space-y-10 pb-12 h-full flex flex-col">
+    <div className="space-y-5 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-slate-800 tracking-tight">{t('templates_page.title')}</h2>
           <p className="text-slate-500 text-sm mt-1 font-medium">{t('templates_page.subtitle')}</p>
         </div>
-        <button 
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 active:scale-95"
-        >
-          <Plus size={14} /> {t('templates_page.create_button')}
-        </button>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          { label: t('templates_page.stat_active'), value: String(templateStatCounts.activeTemplates), icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: t('templates_page.stat_individual'), value: String(templateStatCounts.individual), icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: t('templates_page.stat_corporate'), value: String(templateStatCounts.corporate), icon: Building2, color: 'text-amber-600', bg: 'bg-amber-50' },
-          {
-            label: t('templates_page.stat_global_rules'),
-            value: String(templateStatCounts.globalRulesActive),
-            icon: Globe,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            onClick: onOpenGlobalRules,
-          },
-        ].map((stat, i) => (
-          <div
-            key={i}
-            role={stat.onClick ? 'button' : undefined}
-            tabIndex={stat.onClick ? 0 : undefined}
-            onClick={stat.onClick}
-            onKeyDown={(e) => {
-              if (!stat.onClick) return;
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                stat.onClick();
-              }
-            }}
-            className={cn(
-              'p-6 bg-white border border-slate-200 rounded-2xl shadow-sm',
-              stat.onClick &&
-                'cursor-pointer hover:shadow-md hover:border-indigo-200 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/30'
-            )}
-            aria-label={stat.onClick ? `${stat.label}, ${t('common.global_rules')}` : undefined}
-          >
-            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors', stat.bg)}>
-              <stat.icon size={20} className={stat.color} />
-            </div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-            <p className="text-2xl font-bold text-slate-800 mt-1">{stat.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-        <input 
-          type="text" 
-          placeholder={t('templates_page.search_placeholder')}
-          className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all shadow-sm font-medium"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
-          <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-            <Filter size={18} />
+        <div className="flex flex-wrap gap-2">
+          {onOpenGlobalRules && (
+            <button type="button" onClick={onOpenGlobalRules}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <Globe size={15} /> {t('common.global_rules')}
+            </button>
+          )}
+          <button type="button" onClick={handleOpenCreate}
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+            <Plus size={15} /> {t('templates_page.create_button')}
           </button>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex-1">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.table_name')}</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.table_segment')}</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.table_channel_product')}</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.table_status')}</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.table_actions')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredTemplates.map((tpl) => (
-              <tr key={tpl.id} className="hover:bg-slate-50/50 transition-colors group">
-                <td className="px-8 py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-indigo-50 transition-colors">
-                      <Layers size={18} className="text-slate-400 group-hover:text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">{tpl.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{tpl.id}</p>
-                    </div>
-                  </div>
+      <RecordList<CAFTemplate> rows={templates}
+        columns={['table_name', 'table_code', 'filter_customer', 'field_business_type', 'filter_channel', 'field_product', 'table_status', 'table_actions'].map(key => t('templates_page.' + key))}
+        filters={[
+          { label: t('templates_page.table_name'), value: tpl => tpl.name, mode: 'text' },
+          { label: t('templates_page.table_code'), value: tpl => tpl.id, mode: 'text' },
+          { label: t('templates_page.filter_customer'), value: tpl => tpl.customerType, display: value => customerTypeLabel(value, t) },
+          { label: t('templates_page.field_business_type'), value: tpl => tpl.businessType, mode: 'text' },
+          { label: t('templates_page.filter_channel'), value: tpl => tpl.channel, display: value => channelLabel(value, t) },
+          { label: t('templates_page.field_product'), value: tpl => tpl.product, mode: 'text' },
+          { label: t('templates_page.table_status'), value: tpl => tpl.isActive ? 'active' : 'draft',
+            display: value => t('templates_page.status_' + value) },
+        ]}
+        renderRow={tpl => (
+              <tr key={tpl.id} className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800">{tpl.name}</td>
+                <td className="px-4 py-3 text-xs font-medium text-slate-600">{tpl.id}</td>
+                <td className="px-4 py-3">
+                  <span className={cn('rounded px-2 py-0.5 text-xs font-semibold',
+                    tpl.customerType === 'Individual' ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-700')}>
+                    {customerTypeLabel(tpl.customerType, t)}
+                  </span>
                 </td>
-                <td className="px-8 py-6">
-                  <div className="flex flex-col gap-1">
-                    <span className={cn(
-                      "text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit tracking-tighter",
-                      tpl.customerType === 'Individual' ? "bg-indigo-50 text-indigo-700" : "bg-amber-50 text-amber-700 font-bold"
-                    )}>
-                      {customerTypeLabel(tpl.customerType, t)}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">{tpl.businessType}</span>
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <p className="text-xs font-bold text-slate-700">{tpl.product}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                    {t('templates_page.via', { channel: channelLabel(tpl.channel, t) })}
-                  </p>
-                </td>
-                <td className="px-8 py-6">
+                <td className="px-4 py-3 text-xs text-slate-700">{tpl.businessType}</td>
+                <td className="px-4 py-3 text-xs text-slate-700">{channelLabel(tpl.channel, t)}</td>
+                <td className="px-4 py-3 text-xs text-slate-700">{tpl.product}</td>
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className={cn("w-2 h-2 rounded-full", tpl.isActive ? "bg-emerald-500" : "bg-slate-300")} />
                     <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
@@ -472,13 +347,14 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                     </span>
                   </div>
                 </td>
-                <td className="px-8 py-6">
-                  <div className="flex items-center gap-3">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1">
                     <button 
                       onClick={() => {
                         setSelectedTemplate(tpl);
+                        setPreviewZoom(1);
                         setIsViewModalOpen(true);
-                        setIsViewPreviewMaximized(false);
+                        setShowPreviewDetails(false);
                       }}
                       className="p-2 text-slate-300 hover:text-indigo-600 transition-colors" 
                       title={t('templates_page.title_view_blueprint')}
@@ -507,33 +383,43 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                     >
                       <Trash2 size={16} />
                     </button>
-                    <button className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
+                    {tpl.id === 'TPL-IND-PRE-001' ? <button type="button"
+                      onClick={() => setShowPrepaidRules(true)}
+                      className="p-2 text-slate-500 hover:text-indigo-600"
+                      title={t('templates_page.prepaid_rules')} aria-label={t('templates_page.prepaid_rules')}>
+                      <Settings size={16} />
+                    </button> : <button className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
                       <MoreVertical size={16} />
-                    </button>
+                    </button>}
                   </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        
-        <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            {t('templates_page.footer_showing', { count: templates.length })}
-          </p>
-          <button type="button" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest">
-            {t('templates_page.footer_version_history')}
-          </button>
-        </div>
-      </div>
+        )}
+      />
+
+      {showPrepaidRules && (
+        <PreviewDrawer label={t('templates_page.prepaid_rules')} onClose={() => setShowPrepaidRules(false)}>
+          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+            <h3 className="text-lg font-semibold">{t('templates_page.prepaid_rules')}</h3>
+            <button type="button" onClick={() => setShowPrepaidRules(false)}
+              className="rounded-lg p-2 hover:bg-slate-100" aria-label={t('app_shell.close')}>
+              <X size={20} />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-2">
+            <PrepaidTemplateEditor canPublish={canPublishPrepaid} />
+          </div>
+        </PreviewDrawer>
+      )}
 
       {/* Create Template Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 py-8 sm:py-4 overflow-y-auto bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[min(92dvh,calc(100vh-2rem))] shadow-2xl overflow-hidden flex flex-col min-h-0 my-auto animate-in zoom-in-95 duration-300">
-            <div className="px-8 py-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-3 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div role="dialog" aria-modal="true" aria-labelledby="template-editor-title"
+            className="bg-white w-full h-dvh sm:h-[96dvh] sm:w-[97vw] sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-0 animate-in zoom-in-95 duration-300">
+            <div className="px-4 py-3 sm:px-6 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">
+                <h3 id="template-editor-title" className="text-xl font-bold text-slate-800">
                   {isEditing ? t('templates_page.modal_edit_title') : t('templates_page.modal_create_title')}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
@@ -542,6 +428,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
+                aria-label={t('templates_page.cancel')}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-all"
               >
                 <X size={20} />
@@ -549,14 +436,14 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
             </div>
 
             <form onSubmit={handleSaveTemplate} className="flex flex-col flex-1 min-h-0">
-              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-8 pt-8 pb-6 space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2 col-span-2">
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
+                <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.field_template_name')}</label>
                   <input 
                     required
                     type="text" 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium" 
+                    className="w-full min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
                     placeholder={t('templates_page.placeholder_template_name')}
                     value={newTemplate.name}
                     onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
@@ -566,7 +453,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.field_customer_type')}</label>
                   <select 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
+                    className="w-full min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
                     value={newTemplate.customerType}
                     onChange={(e) => setNewTemplate({...newTemplate, customerType: e.target.value as CustomerType})}
                   >
@@ -580,7 +467,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                   <input 
                     required
                     type="text" 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium" 
+                    className="w-full min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
                     placeholder={t('templates_page.placeholder_business_type')}
                     value={newTemplate.businessType}
                     onChange={(e) => setNewTemplate({...newTemplate, businessType: e.target.value})}
@@ -590,7 +477,7 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.field_channel')}</label>
                   <select 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
+                    className="w-full min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
                     value={newTemplate.channel}
                     onChange={(e) => setNewTemplate({...newTemplate, channel: e.target.value as any})}
                   >
@@ -605,111 +492,87 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
                   <input 
                     required
                     type="text" 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium" 
+                    className="w-full min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium"
                     placeholder={t('templates_page.placeholder_product')}
                     value={newTemplate.product}
                     onChange={(e) => setNewTemplate({...newTemplate, product: e.target.value})}
                   />
                 </div>
 
-                <div className="space-y-2 col-span-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.field_description')}</label>
+              </div>
+
+                <details className="rounded-lg border border-slate-200 px-3 py-2">
+                  <summary className="cursor-pointer text-sm font-medium text-slate-700">{t('templates_page.field_description')}</summary>
                   <textarea 
-                    rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium resize-none" 
+                    rows={2}
+                    aria-label={t('templates_page.field_description')}
+                    className="w-full min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 focus:outline-none transition-all text-sm font-medium resize-none"
                     placeholder={t('templates_page.placeholder_description')}
                     value={newTemplate.description}
                     onChange={(e) => setNewTemplate({...newTemplate, description: e.target.value})}
                   />
-                </div>
+                </details>
 
-                <div className="space-y-2 col-span-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.field_legal_terms')}</label>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        type="button"
-                        onClick={() => setIsImportModalOpen(true)}
-                        className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-600 uppercase tracking-widest hover:bg-emerald-50 px-2 py-1 rounded-lg transition-all"
-                      >
-                        <FileText size={12} /> {t('templates_page.import_from_template')}
+                <div className="min-w-0 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h4 className="text-sm font-semibold text-slate-800">{t('templates_page.editor_body')}</h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={() => setIsImportModalOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
+                        <FileText size={15} /> {t('templates_page.import_from_template')}
                       </button>
-                      <button 
-                        type="button"
-                        onClick={() => setIsMaximized(true)}
-                        className="flex items-center gap-1.5 text-[9px] font-bold text-indigo-600 uppercase tracking-widest hover:bg-indigo-50 px-2 py-1 rounded-lg transition-all"
-                      >
-                        <Maximize2 size={12} /> {t('templates_page.focus_edit')}
+                      <select aria-label={t('templates_page.insert_variable')} value="" disabled={showEditorPreview}
+                        className="max-w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm disabled:opacity-50"
+                        onChange={event => { if (event.target.value) insertVariable(event.target.value); }}>
+                        <option value="" disabled>{t('templates_page.insert_variable')}</option>
+                        {availableVariables.map(variable => (
+                          <option key={variable.key} value={variable.key}>{variable.label}</option>
+                        ))}
+                      </select>
+                      <button type="button" onClick={insertPageBreak} disabled={showEditorPreview}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50">
+                        {t('templates_page.insert_page_break')}
+                      </button>
+                      <button type="button" aria-pressed={showEditorPreview}
+                        onClick={() => setShowEditorPreview(value => !value)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100">
+                        {showEditorPreview ? <Edit2 size={15} /> : <Eye size={15} />}
+                        {t(showEditorPreview ? 'templates_page.back_to_editing' : 'templates_page.show_preview')}
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1 min-w-0 bg-slate-50 rounded-xl overflow-hidden border border-slate-200">
-                        <QuillEditor 
-                          ref={quillRef}
-                          theme="snow" 
-                          value={newTemplate.termsAndConditions} 
-                          onChange={(val: string) => setNewTemplate({...newTemplate, termsAndConditions: val})}
-                          className="bg-white ql-custom-container ql-modal-editor"
-                        />
-                      </div>
-                      
-                      <div className="w-48 shrink-0 flex flex-col min-h-0 max-h-[min(360px,45vh)] overflow-hidden border border-slate-100 rounded-xl bg-white p-2">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 shrink-0 px-1">
-                          <Zap size={10} className="text-amber-500" /> {t('templates_page.bind_variables')}
-                        </p>
-                        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0.5 grid grid-cols-1 gap-1.5">
-                          {availableVariables.map((v) => (
-                            <button
-                              key={v.key}
-                              type="button"
-                              onClick={() => insertVariable(v.key)}
-                              className="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-slate-50/80 hover:border-indigo-600 hover:text-indigo-600 transition-all text-left group"
-                            >
-                              <v.icon size={12} className="text-slate-400 group-hover:text-indigo-600" />
-                              <span className="text-[9px] font-bold truncate">{v.label}</span>
-                            </button>
-                          ))}
-                        </div>
+
+                  <div hidden={showEditorPreview} className="min-w-0 rounded-xl border border-slate-200 bg-white">
+                    <QuillEditor
+                      ref={quillRef}
+                      theme="snow"
+                      modules={richTextModules}
+                      value={newTemplate.termsAndConditions}
+                      onChange={(value: string) => setNewTemplate(previous => ({ ...previous, termsAndConditions: value }))}
+                      className="ql-custom-container ql-workspace-editor"
+                    />
+                  </div>
+                  {showEditorPreview && (
+                    <div className="min-h-80 overflow-auto rounded-xl bg-slate-100 p-3 sm:p-5">
+                      <div className="mx-auto w-max">
+                        {renderBlueprintPreview({ ...newTemplate, id: isEditing ? selectedTemplate?.id : undefined } as CAFTemplate)}
                       </div>
                     </div>
-                    
-                    {/* Live Preview */}
-                    {newTemplate.termsAndConditions && (
-                      <div className="space-y-3 pt-4 border-t border-slate-200">
-                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Eye size={14} className="text-indigo-600" /> {t('templates_page.preview_title')}
-                        </h4>
-                        {renderBlueprintPreview({
-                          ...newTemplate,
-                          id: selectedTemplate?.id || 'PREVIEW',
-                          lastModified: new Date().toISOString(),
-                          fields: selectedTemplate?.fields || [],
-                          isActive: true,
-                        } as CAFTemplate, 'modal')}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[9px] text-slate-400 font-medium">
-                    {t('templates_page.binding_hint', { marker: '{{fullName}}' })}
-                  </p>
+                  )}
                 </div>
               </div>
-              </div>
 
-              <div className="shrink-0 px-8 py-5 border-t border-slate-200 bg-slate-50/90 flex gap-4">
+              <div className="shrink-0 px-4 py-3 sm:px-6 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-6 py-3 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all"
+                  className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all"
                 >
                   {t('templates_page.cancel')}
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-900/10 transition-all active:scale-95"
+                  className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-900/10 transition-all active:scale-95"
                 >
                   {isEditing ? t('templates_page.save_update') : t('templates_page.save_create')}
                 </button>
@@ -719,271 +582,99 @@ export function TemplateManagement({ onOpenGlobalRules }: { onOpenGlobalRules?: 
         </div>
       )}
 
-      {/* View Template Modal */}
       {isViewModalOpen && selectedTemplate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="px-8 py-6 bg-slate-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                  <Layers size={18} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold tracking-tight">{selectedTemplate.name}</h3>
-                  <p className="text-[10px] text-indigo-300 uppercase font-bold tracking-widest">{selectedTemplate.id}</p>
-                </div>
+        <PreviewDrawer label={selectedTemplate.name} onClose={closeViewModal} width="max-w-7xl">
+            <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-6">
+              <div className="min-w-0 flex-1">
+                <h2 id="template-preview-title" className="break-words text-lg font-semibold leading-tight sm:text-xl">
+                  {selectedTemplate.name}
+                </h2>
+                <p className="text-xs text-slate-500">{selectedTemplate.id}</p>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-2">
                 {selectedTemplate.termsAndConditions && (
-                  <button
-                    type="button"
-                    onClick={() => setIsViewPreviewMaximized(true)}
-                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all"
-                    title={t('templates_page.maximize_preview')}
-                  >
-                    <Maximize2 size={20} />
+                  <label className="flex items-center gap-2 text-sm">
+                    {t('templates_page.preview_zoom')}
+                    <select className="rounded-lg border border-slate-200 bg-white px-2 py-1.5" value={previewZoom}
+                      onChange={event => setPreviewZoom(Number(event.target.value))}>
+                      {[0.75, 1, 1.25, 1.5, 1.75, 2].map(zoom => <option key={zoom} value={zoom}>{zoom * 100}%</option>)}
+                    </select>
+                  </label>
+                )}
+                {selectedTemplate.termsAndConditions && (
+                  <button type="button" aria-expanded={showPreviewDetails} aria-controls="template-preview-details"
+                    onClick={() => setShowPreviewDetails(value => !value)}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
+                    {t('templates_page.preview_details')}
                   </button>
                 )}
-                <button 
-                  type="button"
-                  onClick={closeViewModal}
-                  className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all"
-                >
+                <button type="button" onClick={() => handleOpenEdit(selectedTemplate)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                  <Edit2 size={14} /> {t('templates_page.edit_architecture')}
+                </button>
+                <button type="button" onClick={closeViewModal} aria-label={t('templates_page.close_view')}
+                  className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                   <X size={20} />
                 </button>
               </div>
-            </div>
+            </header>
 
-            <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-              {/* Metadata Section */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.view_segment')}</p>
-                  <p className="text-sm font-bold text-slate-800 mt-1">{customerTypeLabel(selectedTemplate.customerType, t)}</p>
+            <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+              {selectedTemplate.termsAndConditions && (
+                <div className="min-w-0 flex-1 overflow-auto bg-slate-100 p-2 sm:p-5">
+                  <div className="mx-auto w-max">
+                    <div style={{ zoom: previewZoom }}>
+                      {renderBlueprintPreview(selectedTemplate)}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.view_business')}</p>
-                  <p className="text-sm font-bold text-slate-800 mt-1">{selectedTemplate.businessType}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.view_channel')}</p>
-                  <p className="text-sm font-bold text-slate-800 mt-1">{channelLabel(selectedTemplate.channel, t)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('templates_page.view_sku')}</p>
-                  <p className="text-sm font-bold text-slate-800 mt-1">{selectedTemplate.product}</p>
-                </div>
-              </div>
+              )}
 
-              {/* Description */}
-              <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-center">{t('templates_page.view_blueprint_context')}</p>
-                <p className="text-xs text-slate-600 leading-relaxed text-center font-medium">
-                  {selectedTemplate.description}
-                </p>
-              </div>
-
-              {/* Form Architecture Section */}
-                <div className="space-y-4">
-                  <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <FileText size={14} className="text-indigo-600" />{' '}
-                    {t('templates_page.digital_architecture', { count: selectedTemplate.fields.length })}
-                  </h4>
-                  <div className="space-y-3">
-                    {selectedTemplate.fields.map((field) => (
-                      <div key={field.id} className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                            <Plus size={14} />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-800">{field.label}</p>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">{fieldTypeLabel(field.type, t)}</p>
-                          </div>
-                        </div>
-                        {field.required && (
-                          <span className="text-[8px] font-bold text-rose-500 uppercase bg-rose-50 px-1.5 py-0.5 rounded tracking-widest">
-                            {t('templates_page.field_mandatory')}
-                          </span>
-                        )}
+              {(!selectedTemplate.termsAndConditions || showPreviewDetails) && (
+                <aside id="template-preview-details"
+                  className={cn('min-h-0 space-y-4 overflow-auto bg-white p-4 sm:p-5',
+                    selectedTemplate.termsAndConditions
+                      ? 'max-h-[40%] shrink-0 border-t border-slate-200 lg:max-h-none lg:w-80 lg:border-s lg:border-t-0'
+                      : 'flex-1')}>
+                  <dl className="grid grid-cols-2 gap-3 text-sm">
+                    {[
+                      [t('templates_page.view_segment'), customerTypeLabel(selectedTemplate.customerType, t)],
+                      [t('templates_page.view_business'), selectedTemplate.businessType],
+                      [t('templates_page.view_channel'), channelLabel(selectedTemplate.channel, t)],
+                      [t('templates_page.view_sku'), selectedTemplate.product],
+                    ].map(([label, value]) => (
+                      <div key={label} className="min-w-0">
+                        <dt className="text-xs text-slate-500">{label}</dt>
+                        <dd className="break-words font-medium">{value}</dd>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* Rich Text Legal Blueprint Preview */}
-                {selectedTemplate.termsAndConditions && (
-                  <div className="space-y-4 pt-6 border-t border-slate-100">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                      <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 justify-center sm:justify-start">
-                        {t('templates_page.preview_title')}
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={() => setIsViewPreviewMaximized(true)}
-                        className="flex items-center justify-center gap-2 self-center sm:self-auto text-[10px] font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-colors"
-                      >
-                        <Maximize2 size={14} /> {t('templates_page.maximize_preview')}
-                      </button>
-                    </div>
-                    {renderBlueprintPreview(selectedTemplate, 'modal')}
-                  </div>
-                )}
-
-              {/* History & Status */}
-              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Clock size={14} />
-                  <span className="text-[10px] font-bold uppercase">
-                    {t('templates_page.modified', {
-                      date: new Date(selectedTemplate.lastModified).toLocaleDateString(
-                        i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US'
-                      ),
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-2 h-2 rounded-full", selectedTemplate.isActive ? 'bg-emerald-500' : 'bg-slate-300')} />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                    {selectedTemplate.isActive ? t('templates_page.active_node') : t('templates_page.draft_pattern')}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 bg-slate-50 border-t border-slate-200 flex gap-4">
-              <button 
-                type="button"
-                onClick={closeViewModal}
-                className="flex-1 px-6 py-3 bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all"
-              >
-                {t('templates_page.close_view')}
-              </button>
-              <button 
-                onClick={() => handleOpenEdit(selectedTemplate)}
-                className="flex-1 px-6 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-900/10 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Edit2 size={14} /> {t('templates_page.edit_architecture')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fullscreen blueprint preview (stack above view modal) */}
-      {isViewModalOpen && selectedTemplate && isViewPreviewMaximized && selectedTemplate.termsAndConditions && (
-        <div className="fixed inset-0 z-[110] flex flex-col bg-slate-100 animate-in fade-in duration-200">
-          <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 bg-slate-900 text-white flex items-center justify-between gap-4 shadow-xl">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 shrink-0 bg-indigo-600 rounded-xl flex items-center justify-center">
-                <Eye size={18} />
-              </div>
-              <div className="min-w-0">
-                <p className="font-bold truncate">{selectedTemplate.name}</p>
-                <p className="text-[10px] text-indigo-300 uppercase font-bold tracking-widest truncate">{selectedTemplate.id}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsViewPreviewMaximized(false)}
-              className="shrink-0 flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
-            >
-              <Minimize2 size={14} /> {t('templates_page.exit_fullscreen')}
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto overflow-x-auto p-4 md:p-8 min-h-0">
-            <div
-              className={cn(
-                'mx-auto',
-                selectedTemplate.isFullPageTerms ? 'max-w-[min(1200px,100%)]' : 'max-w-4xl'
+                  </dl>
+                  {selectedTemplate.description && (
+                    <p className="border-t border-slate-200 pt-3 text-sm text-slate-600">{selectedTemplate.description}</p>
+                  )}
+                  <h3 className="border-t border-slate-200 pt-3 text-sm font-semibold">
+                    {t('templates_page.digital_architecture', { count: selectedTemplate.fields.length })}
+                  </h3>
+                  <ul className={cn('grid gap-2', !selectedTemplate.termsAndConditions && 'sm:grid-cols-2 xl:grid-cols-3')}>
+                    {selectedTemplate.fields.map(field => (
+                      <li key={field.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                        <span className="font-medium">{field.label}</span>
+                        <span className="text-xs text-slate-500">
+                          {fieldTypeLabel(field.type, t)}
+                          {field.required && <span className="ms-2 text-rose-700">{t('templates_page.field_mandatory')}</span>}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-slate-500">
+                    {selectedTemplate.isActive ? t('templates_page.status_active') : t('templates_page.status_draft')}
+                    {' · '}
+                    {t('templates_page.modified', { date: new Date(selectedTemplate.lastModified).toLocaleDateString(i18n.language) })}
+                  </p>
+                </aside>
               )}
-            >
-              {renderBlueprintPreview(selectedTemplate, 'fullscreen')}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Maximized Editor Overlay */}
-      {isMaximized && (
-        <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in zoom-in-95 duration-300">
-          <div className="px-8 py-4 bg-slate-900 text-white flex items-center justify-between shadow-xl">
-             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                  <Edit2 size={18} />
-                </div>
-                <div>
-                   <h3 className="font-bold tracking-tight">{t('templates_page.editor_title')}</h3>
-                   <div className="flex items-center gap-3 mt-0.5">
-                      <p className="text-[9px] text-indigo-300 uppercase font-bold tracking-widest">{t('templates_page.editor_live_schema')}</p>
-                      <span className="w-1 h-1 bg-indigo-400 rounded-full" />
-                      <p className="text-[9px] text-emerald-400 uppercase font-bold tracking-widest">{t('templates_page.editor_autosave')}</p>
-                   </div>
-                </div>
-             </div>
-             <button 
-               onClick={() => setIsMaximized(false)}
-               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
-             >
-                <Minimize2 size={14} /> {t('templates_page.exit_fullscreen')}
-             </button>
-          </div>
-
-          <div className="flex-1 flex overflow-hidden">
-             {/* Left: Editor */}
-             <div className="flex-1 p-8 overflow-y-auto bg-slate-50">
-                <div className="max-w-4xl mx-auto space-y-6">
-                   <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200 overflow-hidden border border-slate-200">
-                      <QuillEditor 
-                        ref={quillRef}
-                        theme="snow" 
-                        value={newTemplate.termsAndConditions} 
-                        onChange={(val: string) => setNewTemplate({...newTemplate, termsAndConditions: val})}
-                        className="bg-white min-h-[70vh] ql-editor-xl"
-                      />
-                   </div>
-                </div>
-             </div>
-
-             {/* Right: Variable Sidebar */}
-             <div className="w-80 bg-white border-l border-slate-200 p-8 overflow-y-auto shadow-2xl">
-                <div className="space-y-8">
-                   <div>
-                      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <Zap size={14} className="text-amber-500" /> {t('templates_page.data_binding_api')}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 font-medium mb-6 leading-relaxed">
-                        {t('templates_page.data_binding_desc')}
-                      </p>
-                      <div className="space-y-3">
-                         {availableVariables.map((v) => (
-                           <button
-                             key={v.key}
-                             onClick={() => insertVariable(v.key)}
-                             className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-indigo-600 hover:bg-indigo-50 transition-all group"
-                           >
-                              <div className="flex items-center gap-3">
-                                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 group-hover:text-indigo-600 shadow-sm border border-slate-100">
-                                    <v.icon size={14} />
-                                 </div>
-                                 <span className="text-xs font-bold text-slate-700">{v.label}</span>
-                              </div>
-                              <PlusCircle size={14} className="text-slate-300 group-hover:text-indigo-600" />
-                           </button>
-                         ))}
-                      </div>
-                   </div>
-
-                   <div className="p-5 bg-indigo-50 rounded-2xl border border-indigo-100">
-                      <h5 className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mb-3">{t('templates_page.developer_note')}</h5>
-                      <p className="text-[10px] text-indigo-800 leading-relaxed font-medium">
-                        {t('templates_page.developer_note_body')}
-                      </p>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </div>
+        </PreviewDrawer>
       )}
 
       {/* Import Template Modal */}

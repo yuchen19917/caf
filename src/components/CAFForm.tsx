@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import {
   User, Building2, MapPin, Phone, Mail, CreditCard,
   FileText, Upload, CheckCircle, AlertCircle, Globe,
@@ -9,7 +9,12 @@ import { CustomerType } from '../types';
 import { useApplications } from '../context/ApplicationContext';
 import type { CustomerApplicationForm } from '../types';
 import { DocumentUploader } from './DocumentUploader';
+import { PrepaidCAFForm } from './PrepaidCAFForm';
+import { TemplateCAFForm } from './TemplateCAFForm';
+import { useTemplates } from '../hooks/useTemplates';
+import type { CAFTemplate } from '../types';
 import type { UploadedFile } from '../lib/fileStorage';
+import type { User as CAFUser } from '../lib/auth';
 import { useTranslation } from 'react-i18next';
 
 //  Extracted outside component to prevent focus loss on re-render 
@@ -77,6 +82,45 @@ export default function CAFForm({
   onGoToApplications,
   user,
 }: {
+  initialData?: CustomerApplicationForm | null;
+  onGoToApplications: () => void;
+  user: CAFUser;
+}) {
+  const [prepaid, setPrepaid] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<CAFTemplate | null>(null);
+  const { templates: allTemplates } = useTemplates();
+  const templates = useMemo(() => allTemplates.filter(template =>
+    template.isActive && template.lifecycle !== 'archived' && template.lifecycle !== 'deprecated'), [allTemplates]);
+  if (initialData?.blueprintSnapshot) {
+    return <TemplateCAFForm template={initialData.blueprintSnapshot} initialData={initialData} user={user} onBack={onGoToApplications} />;
+  }
+  if (initialData?.templateSnapshot || prepaid) {
+    return <PrepaidCAFForm initialData={initialData ?? undefined} user={user} onBack={onGoToApplications} />;
+  }
+  if (selectedTemplate) {
+    return <TemplateCAFForm template={selectedTemplate} user={user} onBack={() => setSelectedTemplate(null)} />;
+  }
+  if (!initialData) return <div className="mx-auto max-w-5xl space-y-5 pb-12">
+    <div><h2 className="text-3xl font-bold text-slate-800">Select an application template</h2>
+      <p className="mt-1 text-sm text-slate-500">Choose the form that matches the customer and service.</p></div>
+    <div className="grid gap-3 sm:grid-cols-2">
+      {templates.map(template => <button key={template.id} type="button"
+        onClick={() => setSelectedTemplate(template)}
+        className="rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-indigo-500 hover:bg-indigo-50">
+        <span className="block font-semibold text-slate-900">{template.name}</span>
+        <span className="mt-2 block text-sm text-slate-600">{template.customerType} · {template.product} · v{template.version}</span>
+      </button>)}
+    </div>
+    <button type="button" onClick={() => setPrepaid(true)} className="text-sm text-indigo-700 underline">Individual prepaid SIM registration</button>
+  </div>;
+  return <LegacyCAFForm initialData={initialData} onGoToApplications={onGoToApplications} user={user} />;
+}
+
+function LegacyCAFForm({
+  initialData,
+  onGoToApplications,
+  user,
+}: {
   initialData?: any;
   onGoToApplications?: () => void;
   user: any;
@@ -96,6 +140,7 @@ export default function CAFForm({
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [submittedRecord, setSubmittedRecord] = useState<CustomerApplicationForm | null>(null);
 
   const set = (patch: Partial<FormData>) => setForm(f => ({ ...f, ...patch }));
@@ -105,15 +150,15 @@ export default function CAFForm({
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
   const handleSubmit = () => {
+    setSubmitError('');
     setIsVerifying(true);
-    setTimeout(() => {
-      const record = initialData?.id
-        ? resubmitCorrection(initialData.id, form, user)
-        : addApplicationFromForm(form, user);
+    const submission = initialData?.id
+      ? resubmitCorrection(initialData.id, form, user)
+      : addApplicationFromForm(form, user);
+    submission.then(record => {
       setSubmittedRecord(record);
-      setIsVerifying(false);
       setIsSubmitted(true);
-    }, 2500);
+    }).catch(error => setSubmitError(error.message)).finally(() => setIsVerifying(false));
   };
 
   const requiredDocs = form.customerType === 'Individual'
@@ -213,6 +258,7 @@ export default function CAFForm({
   return (
     <div className="max-w-4xl mx-auto pb-12">
       <div className="mb-10">
+        {submitError && <p className="mb-3 text-sm text-rose-700" role="alert">{submitError}</p>}
         <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
           {isCorrection ? t('caf_form.correction_title', { id: initialData.id }) : t('caf_form.new_caf_title')}
         </h2>

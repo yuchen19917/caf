@@ -418,5 +418,5 @@ const filteredDocuments = useMemo(() => {
 **设计版本**: v2.0  
 **更新日期**: 2026-05-06  
 **设计师**: Kiro AI  
-**适用系统**: ATOMA CAF Management System
+**适用系统**: AsiaInfo CAF Management System
 

@@ -38,7 +38,7 @@ export interface IntegrationMetric {
 export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
   {
     id: 'crm',
-    name: 'ATOMA CRM Core',
+    name: 'AsiaInfo CRM Core',
     shortName: 'CRM',
     description: 'Customer relationship management — master customer profile, subscription lifecycle, account hierarchy',
     category: 'crm',
@@ -46,9 +46,9 @@ export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
     lastSync: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
     pendingJobs: 2,
     successRate: 99.2,
-    apiEndpoint: 'https://crm-api.atoma.af/v3',
+    apiEndpoint: 'https://crm-api.asiainfo.com/v3',
     version: 'v3.4.1',
-    vendor: 'ATOMA Internal',
+    vendor: 'AsiaInfo Internal',
   },
   {
     id: 'billing',
@@ -60,7 +60,7 @@ export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
     lastSync: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
     pendingJobs: 5,
     successRate: 98.7,
-    apiEndpoint: 'https://bss.atoma.af/api/v2',
+    apiEndpoint: 'https://bss.asiainfo.com/api/v2',
     version: 'v2.9.0',
     vendor: 'Amdocs',
   },
@@ -74,7 +74,7 @@ export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
     lastSync: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
     pendingJobs: 3,
     successRate: 97.4,
-    apiEndpoint: 'https://oss.atoma.af/nms/v1',
+    apiEndpoint: 'https://oss.asiainfo.com/nms/v1',
     version: 'v1.12.3',
     vendor: 'Huawei OSS',
   },
@@ -88,15 +88,15 @@ export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
     lastSync: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
     pendingJobs: 0,
     successRate: 99.9,
-    apiEndpoint: 'https://nms.atoma.af/api',
+    apiEndpoint: 'https://nms.asiainfo.com/api',
     version: 'v4.1.0',
-    vendor: 'ATOMA Internal',
+    vendor: 'AsiaInfo Internal',
   },
   {
     id: 'ntra',
     name: 'NTRA Regulatory Portal',
     shortName: 'NTRA',
-    description: 'Afghanistan Telecom Regulatory Authority — SIM registration compliance, KYC submission, regulatory reporting',
+    description: 'DMS Telecom Regulatory Authority — SIM registration compliance, KYC submission, regulatory reporting',
     category: 'regulatory',
     status: 'degraded',
     lastSync: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
@@ -104,7 +104,7 @@ export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
     successRate: 89.1,
     apiEndpoint: 'https://portal.ntra.gov.af/api/v1',
     version: 'v1.3.0',
-    vendor: 'NTRA Afghanistan',
+    vendor: 'NTRA DMS',
   },
   {
     id: 'kyc',
@@ -118,7 +118,7 @@ export const INTEGRATION_SYSTEMS: IntegrationSystem[] = [
     successRate: 99.5,
     apiEndpoint: 'https://kyc.e-tazkira.gov.af/verify/v2',
     version: 'v2.0.4',
-    vendor: 'NID Authority of Afghanistan',
+    vendor: 'NID Authority of DMS',
   },
 ];
 
@@ -308,7 +308,7 @@ export const INTEGRATION_EVENTS: IntegrationEvent[] = [
     timestamp: ago(60),
     severity: 'info',
     message: 'Monthly SIM registration summary submitted to NTRA',
-    details: 'Period: April 2026 | New registrations: 1,247 | Deactivations: 89',
+    details: 'Period: October 2026 | New registrations: 1,247 | Deactivations: 89',
   },
   // KYC events
   {
@@ -384,7 +384,7 @@ export const SYSTEM_METRICS: Record<string, IntegrationMetric[]> = {
     { label: 'Pending Submissions', value: 14, trend: 'up' },
     { label: 'Rejected by NTRA', value: 3, trend: 'flat' },
     { label: 'Portal Uptime', value: '89.1', unit: '%', trend: 'down' },
-    { label: 'Last Report Submitted', value: 'Apr 2026', trend: 'flat' },
+    { label: 'Last Report Submitted', value: 'Oct 2026', trend: 'flat' },
     { label: 'Compliance Rate', value: '97.8', unit: '%', trend: 'flat' },
   ],
   kyc: [

@@ -81,14 +81,14 @@
 步骤1 - 类型与档案:
 - 选择业务类型: Enterprise
 - 选择客户类型: Corporate
-- 填写公司名称: "Afghan Tech Solutions Ltd"
+- 填写公司名称: "AsiaInfo Tech Solutions Ltd"
 - 填写许可证详情: "ISP-2026-001"
 - 填写董事姓名: "Mohammad Karimi"
 - 选择申请人类型: "Pvt. Ltd. Company"
-- 填写安装地址: "Kabul Business District, Afghanistan"
+- 填写安装地址: "Kabul Business District, DMS"
 - 填写注册手机: "+93 700 123 456"
 - 填写备用号码: "+93 700 123 457"
-- 填写注册邮箱: "info@afghantech.af"
+- 填写注册邮箱: "info@asiainfotech.com"
 - 填写授权签字人信息
 - 填写技术协调员信息
 - 填写账单协调员信息
@@ -400,12 +400,12 @@ C. 拒绝 (Reject):
       {
         "id": "CAF-2026-001",
         "customerType": "Corporate",
-        "fullName": "Afghan Tech Solutions Ltd",
+        "fullName": "AsiaInfo Tech Solutions Ltd",
         "idNumber": "ISP-2026-001",
         "idType": "Pvt. Ltd. Company",
-        "address": "Kabul Business District, Afghanistan",
+        "address": "Kabul Business District, DMS",
         "contactNumber": "+93 700 123 456",
-        "email": "info@afghantech.af",
+        "email": "info@asiainfotech.com",
         "serviceType": "Postpaid",
         "planName": "Enterprise Fiber 100M",
         "status": "Archived",

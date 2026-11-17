@@ -1,3 +1,4 @@
+import { RecordList } from './RecordList';
 import React, { useState, useEffect } from 'react';
 import {
   Activity, CheckCircle2, AlertTriangle, XCircle, RefreshCw,
@@ -74,24 +75,6 @@ function SystemRow({ system, isSelected, onClick }: { system: IntegrationSystem;
         <span className={cn('w-2 h-2 rounded-full', STATUS_DOT[system.status])} />
       </div>
     </button>
-  );
-}
-
-function EventRow({ event }: { event: IntegrationEvent }) {
-  return (
-    <div className="flex gap-3 py-2.5 border-b border-gray-50 last:border-0">
-      <span className={cn('w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0', SEVERITY_DOT[event.severity])} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-xs text-gray-800">{event.message}</p>
-          <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeAgo(event.timestamp)}</span>
-        </div>
-        {event.cafId && (
-          <p className="text-[10px] text-blue-600 mt-0.5">{event.cafId}{event.customerName && ` · ${event.customerName}`}</p>
-        )}
-        {event.details && <p className="text-[10px] text-gray-400 font-mono mt-0.5 leading-relaxed">{event.details}</p>}
-      </div>
-    </div>
   );
 }
 
@@ -319,16 +302,13 @@ export function IntegrationHub() {
   const [selectedSystemId, setSelectedSystemId] = useState('crm');
   const [tab, setTab] = useState<'status' | 'connectivity'>('status');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [severityFilter, setSeverityFilter] = useState<string>('all');
 
   const selectedSystem = INTEGRATION_SYSTEMS.find(s => s.id === selectedSystemId)!;
   const systemEvents = getEventsForSystem(selectedSystemId);
   const metrics = SYSTEM_METRICS[selectedSystemId] || [];
   const Icon = CAT_ICON[selectedSystem.category] || Server;
 
-  const filteredEvents = severityFilter === 'all'
-    ? systemEvents
-    : systemEvents.filter(e => e.severity === severityFilter);
+
 
   const onlineCount  = INTEGRATION_SYSTEMS.filter(s => s.status === 'online').length;
   const degradedCount = INTEGRATION_SYSTEMS.filter(s => s.status === 'degraded').length;
@@ -415,7 +395,7 @@ export function IntegrationHub() {
         </div>
 
         {/* Detail panel */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 min-w-0 space-y-4">
           {/* System header */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-start justify-between gap-4">
@@ -476,31 +456,26 @@ export function IntegrationHub() {
                 ))}
               </div>
 
-              {/* Event log */}
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Event Log</p>
-                  <div className="flex gap-1">
-                    {(['all', 'success', 'warning', 'error', 'info'] as const).map(f => (
-                      <button
-                        key={f}
-                        onClick={() => setSeverityFilter(f)}
-                        className={cn('px-2 py-0.5 rounded text-[10px] font-medium transition-colors', severityFilter === f ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="p-3 divide-y divide-gray-50">
-                  {filteredEvents.length === 0
-                    ? <p className="text-xs text-gray-400 text-center py-6">No events for this filter</p>
-                    : filteredEvents.map(event => (
-                        <React.Fragment key={event.id}><EventRow event={event} /></React.Fragment>
-                      ))
-                  }
-                </div>
-              </div>
+              <section className="min-w-0 space-y-3">
+                <h3 className="text-sm font-semibold text-slate-800">Event Log</h3>
+                <RecordList<IntegrationEvent> rows={systemEvents}
+                  columns={['Time', 'Severity', 'Message', 'CAF ID', 'Customer', 'Details']}
+                  search={event => [event.message, event.cafId, event.customerName, event.details]}
+                  filters={[{ label: 'Severity', value: event => event.severity }]}
+                  renderRow={event => (
+                    <tr key={event.id} className="hover:bg-slate-50">
+                      <td title={new Date(event.timestamp).toLocaleString()}>{timeAgo(event.timestamp)}</td>
+                      <td><span className="inline-flex items-center gap-2">
+                        <span className={cn('h-2 w-2 rounded-full', SEVERITY_DOT[event.severity])} />{event.severity}
+                      </span></td>
+                      <td>{event.message}</td>
+                      <td>{event.cafId || '—'}</td>
+                      <td>{event.customerName || '—'}</td>
+                      <td><span className="block max-w-xs truncate" title={event.details}>{event.details || '—'}</span></td>
+                    </tr>
+                  )}
+                />
+              </section>
             </>
           ) : (
             <ConnectivityPanel systemId={selectedSystemId} />

@@ -30,7 +30,7 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 
 ```html
 <div style="text-align: center; border-bottom: 3px solid #1229B3; padding-bottom: 20px; margin-bottom: 30px;">
-  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">ATOMA TELECOM</h1>
+  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">AsiaInfo TELECOM</h1>
   <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">企业宽带接入业务申请表</p>
   <p style="color: #999; font-size: 10px; margin: 5px 0 0 0;">ENTERPRISE BROADBAND SERVICE APPLICATION FORM</p>
 </div>
@@ -110,19 +110,19 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
   <h3 style="color: #333; font-size: 14px; margin-top: 0;">3.1 服务协议</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    本人代表 <strong>{{fullName}}</strong> 申请 ATOMA TELECOM 提供的企业宽带接入服务，并承诺：
+    本人代表 <strong>{{fullName}}</strong> 申请 AsiaInfo TELECOM 提供的企业宽带接入服务，并承诺：
   </p>
   <ol style="line-height: 1.8; color: #666; font-size: 13px;">
     <li>所提供的企业信息及相关证件真实有效，如有虚假，愿承担相应法律责任；</li>
     <li>已充分了解所申请服务的资费标准、服务内容及相关条款；</li>
-    <li>同意遵守 ATOMA TELECOM 的服务协议及相关管理规定；</li>
+    <li>同意遵守 AsiaInfo TELECOM 的服务协议及相关管理规定；</li>
     <li>保证不利用所申请的网络服务从事违法违规活动；</li>
     <li>按时缴纳服务费用，如逾期未缴，同意运营商采取停机等措施。</li>
   </ol>
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.2 服务等级承诺（SLA）</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    ATOMA TELECOM 承诺为企业客户提供以下服务保障：
+    AsiaInfo TELECOM 承诺为企业客户提供以下服务保障：
   </p>
   <ul style="line-height: 1.8; color: #666; font-size: 13px;">
     <li><strong>网络可用性</strong>：≥99.5%（专线业务 ≥99.9%）</li>
@@ -142,13 +142,13 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.4 违约责任</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    如客户违反服务协议或从事违法活动，ATOMA TELECOM 有权立即停止服务，并保留追究法律责任的权利。
+    如客户违反服务协议或从事违法活动，AsiaInfo TELECOM 有权立即停止服务，并保留追究法律责任的权利。
     已缴纳的费用不予退还。
   </p>
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">3.5 隐私保护</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    ATOMA TELECOM 承诺严格保护客户信息安全，不向第三方泄露客户资料，但法律法规要求或监管机构要求的除外。
+    AsiaInfo TELECOM 承诺严格保护客户信息安全，不向第三方泄露客户资料，但法律法规要求或监管机构要求的除外。
   </p>
 </div>
 ```
@@ -161,7 +161,7 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
   <p style="line-height: 1.8; color: #856404; font-size: 13px; margin: 0;">
     <strong>重要声明：</strong>本人作为 <strong>{{fullName}}</strong> 的授权代表，
-    已仔细阅读并完全理解上述所有条款，同意接受 ATOMA TELECOM 的服务协议及相关规定。
+    已仔细阅读并完全理解上述所有条款，同意接受 AsiaInfo TELECOM 的服务协议及相关规定。
     本人确认所提供的所有信息真实、准确、完整，并愿意承担因信息不实而产生的一切法律责任。
   </p>
 </div>
@@ -170,7 +170,7 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
   <p style="color: #666; font-size: 13px; line-height: 1.8;">
     <strong>申请日期</strong>：{{submissionDate}}<br>
     <strong>申请编号</strong>：系统自动生成<br>
-    <strong>受理网点</strong>：ATOMA TELECOM 企业服务中心
+    <strong>受理网点</strong>：AsiaInfo TELECOM 企业服务中心
   </p>
 </div>
 ```
@@ -204,8 +204,8 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 ```html
 <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #1229B3; text-align: center;">
   <p style="color: #999; font-size: 11px; line-height: 1.6;">
-    ATOMA TELECOM 企业服务中心<br>
-    客户服务热线：400-XXX-XXXX | 企业服务邮箱：enterprise@atoma.com<br>
+    AsiaInfo TELECOM 企业服务中心<br>
+    客户服务热线：400-XXX-XXXX | 企业服务邮箱：enterprise@asiainfo.com<br>
     地址：北京市朝阳区XX路XX号 | 邮编：100000<br>
     <br>
     <em style="font-size: 10px;">本申请表一式两份，客户与运营商各执一份。</em>
@@ -331,7 +331,7 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 - 支持变量动态替换
 
 ### 6.4 美观性
-- 使用企业品牌色（ATOMA 蓝色）
+- 使用企业品牌色（AsiaInfo 蓝色）
 - 合理的排版和间距
 - 专业的视觉呈现
 
@@ -349,4 +349,4 @@ Description: 适用于企业客户申请固定宽带、光纤接入、专线等�
 
 **文档版本**: v1.0  
 **创建日期**: 2024-05-06  
-**适用系统**: ATOMA CAF Management System
+**适用系统**: AsiaInfo CAF Management System

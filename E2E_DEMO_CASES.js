@@ -56,7 +56,7 @@ async function tc001() {
     contactNumber: '+93 70 000 0001',
     email: 'tc001@demo.af',
     serviceType: 'Prepaid',
-    planName: 'ATOMA Starter 10GB',
+    planName: 'AsiaInfo Starter 10GB',
     status: 'Pending',
     submissionDate: new Date().toISOString(),
     documents: [{ id: 'D-TC001-1', name: 'Tazkira Front', type: 'ID Card', uploadDate: new Date().toISOString().slice(0,10), status: 'Unverified' }],
@@ -100,7 +100,7 @@ async function tc002() {
     contactNumber: '+93 20 000 0002',
     email: 'ops@tc002.af',
     serviceType: 'Postpaid',
-    planName: 'ATOMA Enterprise Unlimited',
+    planName: 'AsiaInfo Enterprise Unlimited',
     status: 'Pending',
     submissionDate: new Date().toISOString(),
     documents: [
@@ -142,7 +142,7 @@ async function tc003() {
     address: 'Test Street 3, Kabul',
     contactNumber: '+93 70 000 0003',
     serviceType: 'Prepaid',
-    planName: 'ATOMA Starter 10GB',
+    planName: 'AsiaInfo Starter 10GB',
     status: 'Pending',
     submissionDate: new Date().toISOString(),
     documents: [{ id: 'D-TC003-1', name: 'Tazkira', type: 'ID Card', uploadDate: new Date().toISOString().slice(0,10), status: 'Unverified' }],
@@ -179,7 +179,7 @@ async function tc004() {
     address: 'Original Street, Kabul',
     contactNumber: '+93 70 000 0004',
     serviceType: 'Prepaid',
-    planName: 'ATOMA Starter 10GB',
+    planName: 'AsiaInfo Starter 10GB',
     status: 'Pending',
     submissionDate: new Date().toISOString(),
     documents: [],
@@ -292,14 +292,14 @@ async function tc007() {
   const c1 = await post('/cafs', {
     customerType: 'Individual', fullName: 'TC007 User A', idNumber: 'T-TC007-A',
     idType: 'Tazkira', address: 'Kabul', contactNumber: '+93 70 000 0071',
-    serviceType: 'Prepaid', planName: 'ATOMA Starter', status: 'Pending',
+    serviceType: 'Prepaid', planName: 'AsiaInfo Starter', status: 'Pending',
     submissionDate: new Date().toISOString(), documents: [],
     createdBy: 'USR-AGENT-001', createdByUsername: 'agent',
   });
   const c2 = await post('/cafs', {
     customerType: 'Corporate', fullName: 'TC007 Corp B', idNumber: 'C-TC007-B',
     idType: 'Business License', address: 'Kabul', contactNumber: '+93 20 000 0072',
-    serviceType: 'Postpaid', planName: 'ATOMA Enterprise', status: 'Pending',
+    serviceType: 'Postpaid', planName: 'AsiaInfo Enterprise', status: 'Pending',
     submissionDate: new Date().toISOString(), documents: [],
     createdBy: 'USR-AGENT-001', createdByUsername: 'agent',
     corporateDetails: { companyRegNo: 'TC007-001', taxId: 'TIN-TC007', authorizedSignatory: 'TC007 Sig', technicalContact: 'TC007 Tech', staticIpRequired: false },
@@ -338,7 +338,7 @@ async function tc008() {
     const c = await post('/cafs', {
       customerType: 'Individual', fullName: names[i], idNumber: `T-TC008-${i}`,
       idType: 'Tazkira', address: 'Kabul', contactNumber: `+93 70 000 008${i}`,
-      serviceType: 'Prepaid', planName: 'ATOMA Starter', status: statuses[i],
+      serviceType: 'Prepaid', planName: 'AsiaInfo Starter', status: statuses[i],
       submissionDate: new Date().toISOString(), documents: [],
       createdBy: 'USR-AGENT-001', createdByUsername: 'agent',
     });
@@ -374,7 +374,7 @@ async function tc009() {
   const created = await post('/cafs', {
     customerType: 'Individual', fullName: 'TC009 Archive Test', idNumber: 'T-TC009',
     idType: 'Tazkira', address: 'Kabul', contactNumber: '+93 70 000 0009',
-    serviceType: 'Prepaid', planName: 'ATOMA Elite 50GB', status: 'Pending',
+    serviceType: 'Prepaid', planName: 'AsiaInfo Elite 50GB', status: 'Pending',
     submissionDate: new Date().toISOString(), documents: [],
     createdBy: 'USR-AGENT-001', createdByUsername: 'agent',
   });

@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { CustomerApplicationForm } from '../types';
 
 /**
  * Merges Tailwind classes with clsx and tailwind-merge
@@ -18,4 +19,8 @@ export function formatRelativeTime(iso: string): string {
   const days = Math.floor(hrs / 24);
   if (days < 14) return `${days} day${days === 1 ? '' : 's'} ago`;
   return new Date(iso).toLocaleDateString();
+}
+export function wasSubmittedToday(caf: CustomerApplicationForm) {
+  const submitted = caf.history?.find(event => event.action === 'submitted')?.at ?? caf.submissionDate;
+  return new Date(submitted).toDateString() === new Date().toDateString();
 }

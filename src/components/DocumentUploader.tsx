@@ -101,7 +101,7 @@ export function DocumentUploader({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-slate-700">{documentName}</p>
               <p className="text-xs text-slate-400 mt-0.5">
-                {uploading ? 'Uploading...' : 'Click to mark as attached'}
+                {uploading ? 'Uploading...' : 'Click to upload JPG, PNG or PDF (up to 10 MB)'}
               </p>
             </div>
           </div>

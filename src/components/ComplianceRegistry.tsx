@@ -1,3 +1,4 @@
+import { RecordList } from './RecordList';
 import React, { useState } from 'react';
 import {
   ShieldAlert, Radio, FileCheck, MapPin, Clock,
@@ -9,43 +10,43 @@ import { cn } from '../lib/utils';
 // ── Mock data ────────────────────────────────────────────────────────────────
 
 const SPECTRUM_LICENSES = [
-  { id: 'SL-900', band: '900 MHz', tech: 'GSM / 2G', bw: '2×10 MHz', licenseNo: 'ATRA/SL/900/2022/001', issued: '2022-01-15', expiry: '2027-01-14', status: 'active', region: 'National' },
-  { id: 'SL-1800', band: '1800 MHz', tech: 'GSM / LTE', bw: '2×15 MHz', licenseNo: 'ATRA/SL/1800/2022/002', issued: '2022-01-15', expiry: '2027-01-14', status: 'active', region: 'National' },
-  { id: 'SL-2100', band: '2100 MHz', tech: 'WCDMA / 3G', bw: '2×20 MHz', licenseNo: 'ATRA/SL/2100/2023/003', issued: '2023-06-01', expiry: '2026-05-31', status: 'expiring', region: 'National' },
-  { id: 'SL-3500', band: '3500 MHz', tech: '5G NR (Trial)', bw: '100 MHz', licenseNo: 'ATRA/SL/3500/2025/004', issued: '2025-03-01', expiry: '2026-02-28', status: 'expired', region: 'Kabul, Herat' },
-  { id: 'SL-450', band: '450 MHz', tech: 'Fixed Wireless', bw: '2×5 MHz', licenseNo: 'ATRA/SL/450/2021/005', issued: '2021-09-01', expiry: '2026-08-31', status: 'active', region: 'Rural Zones' },
+  { id: 'SL-900', band: '900 MHz', tech: 'GSM / 2G', bw: '2×10 MHz', licenseNo: 'ATRA/SL/900/2022/001', issued: '2022-07-15', expiry: '2027-07-14', status: 'active', region: 'National' },
+  { id: 'SL-1800', band: '1800 MHz', tech: 'GSM / LTE', bw: '2×15 MHz', licenseNo: 'ATRA/SL/1800/2022/002', issued: '2022-07-15', expiry: '2027-07-14', status: 'active', region: 'National' },
+  { id: 'SL-2100', band: '2100 MHz', tech: 'WCDMA / 3G', bw: '2×20 MHz', licenseNo: 'ATRA/SL/2100/2023/003', issued: '2023-12-01', expiry: '2026-11-30', status: 'expiring', region: 'National' },
+  { id: 'SL-3500', band: '3500 MHz', tech: '5G NR (Trial)', bw: '100 MHz', licenseNo: 'ATRA/SL/3500/2025/004', issued: '2025-09-01', expiry: '2026-08-28', status: 'expired', region: 'Kabul, Herat' },
+  { id: 'SL-450', band: '450 MHz', tech: 'Fixed Wireless', bw: '2×5 MHz', licenseNo: 'ATRA/SL/450/2022/005', issued: '2022-03-01', expiry: '2027-02-28', status: 'active', region: 'Rural Zones' },
 ];
 
 const ATRA_FILINGS = [
-  { id: 'AF-001', type: 'Quarterly Spectrum Usage Report', period: 'Q1 2026', due: '2026-04-30', submitted: '2026-04-22', status: 'submitted', ref: 'ATRA/QSR/Q1/2026/ATM' },
-  { id: 'AF-002', type: 'Annual EMF Compliance Report', period: 'FY 2025', due: '2026-03-31', submitted: '2026-03-28', status: 'submitted', ref: 'ATRA/EMF/2025/ATM' },
-  { id: 'AF-003', type: 'Subscriber Data Report (Biannual)', period: 'H1 2026', due: '2026-07-31', submitted: null, status: 'pending', ref: null },
-  { id: 'AF-004', type: 'QoS Performance Benchmarking', period: 'Q2 2026', due: '2026-07-15', submitted: null, status: 'pending', ref: null },
-  { id: 'AF-005', type: 'Network Rollout Progress Report', period: 'H1 2026', due: '2026-06-30', submitted: null, status: 'due_soon', ref: null },
-  { id: 'AF-006', type: 'Spectrum License Renewal Application', period: '2100 MHz Band', due: '2026-02-28', submitted: null, status: 'overdue', ref: null },
-  { id: 'AF-007', type: 'Interconnection Agreement Filing', period: 'Q2 2026', due: '2026-08-01', submitted: null, status: 'pending', ref: null },
-  { id: 'AF-008', type: 'Universal Service Fund Contribution Report', period: 'FY 2025', due: '2026-03-31', submitted: '2026-03-29', status: 'submitted', ref: 'ATRA/USF/2025/ATM' },
+  { id: 'AF-001', type: 'Quarterly Spectrum Usage Report', period: 'Q3 2026', due: '2026-10-30', submitted: '2026-10-22', status: 'submitted', ref: 'ATRA/QSR/Q3/2026/ATM' },
+  { id: 'AF-002', type: 'Annual EMF Compliance Report', period: 'FY 2025', due: '2026-09-30', submitted: '2026-09-28', status: 'submitted', ref: 'ATRA/EMF/2025/ATM' },
+  { id: 'AF-003', type: 'Subscriber Data Report (Biannual)', period: 'H2 2026', due: '2027-01-31', submitted: null, status: 'pending', ref: null },
+  { id: 'AF-004', type: 'QoS Performance Benchmarking', period: 'Q4 2026', due: '2027-01-15', submitted: null, status: 'pending', ref: null },
+  { id: 'AF-005', type: 'Network Rollout Progress Report', period: 'H2 2026', due: '2026-12-30', submitted: null, status: 'due_soon', ref: null },
+  { id: 'AF-006', type: 'Spectrum License Renewal Application', period: '2100 MHz Band', due: '2026-08-28', submitted: null, status: 'overdue', ref: null },
+  { id: 'AF-007', type: 'Interconnection Agreement Filing', period: 'Q4 2026', due: '2027-02-01', submitted: null, status: 'pending', ref: null },
+  { id: 'AF-008', type: 'Universal Service Fund Contribution Report', period: 'FY 2025', due: '2026-09-30', submitted: '2026-09-29', status: 'submitted', ref: 'ATRA/USF/2025/ATM' },
 ];
 
 const ROW_PERMITS = [
-  { id: 'ROW-KBL-001', province: 'Kabul', authority: 'Kabul City Municipality', permitNo: 'KBL/ROW/2023/047', type: 'Underground OFC', km: 42.5, issued: '2023-05-10', expiry: '2028-05-09', status: 'active' },
-  { id: 'ROW-KBL-002', province: 'Kabul', authority: 'Kabul Airport Authority', permitNo: 'KBL-AA/ROW/2024/011', type: 'Aerial Cable', km: 3.2, issued: '2024-02-14', expiry: '2026-06-15', status: 'expiring' },
-  { id: 'ROW-KDR-001', province: 'Kandahar', authority: 'Kandahar City Council', permitNo: 'KDR/ROW/2022/033', type: 'Underground OFC', km: 28.0, issued: '2022-11-01', expiry: '2025-10-31', status: 'expired' },
-  { id: 'ROW-HRT-001', province: 'Herat', authority: 'Herat Municipality', permitNo: 'HRT/ROW/2024/019', type: 'Underground OFC', km: 35.8, issued: '2024-06-20', expiry: '2029-06-19', status: 'active' },
-  { id: 'ROW-MZR-001', province: 'Mazar-i-Sharif', authority: 'Balkh Province Authority', permitNo: 'MZR/ROW/2023/025', type: 'Microwave Corridor', km: 120.0, issued: '2023-09-15', expiry: '2026-09-14', status: 'active' },
-  { id: 'ROW-JLB-001', province: 'Jalalabad', authority: 'Nangarhar Province DPW', permitNo: 'JLB/ROW/2024/007', type: 'Underground OFC', km: 18.5, issued: '2024-01-08', expiry: '2027-01-07', status: 'active' },
-  { id: 'ROW-KND-001', province: 'Kunduz', authority: 'Kunduz Municipality', permitNo: 'KND/ROW/2025/003', type: 'Underground OFC', km: 12.0, issued: '2025-04-01', expiry: '2030-03-31', status: 'active' },
+  { id: 'ROW-KBL-001', province: 'Kabul', authority: 'Kabul City Municipality', permitNo: 'KBL/ROW/2023/047', type: 'Underground OFC', km: 42.5, issued: '2023-11-10', expiry: '2028-11-09', status: 'active' },
+  { id: 'ROW-KBL-002', province: 'Kabul', authority: 'Kabul Airport Authority', permitNo: 'KBL-AA/ROW/2024/011', type: 'Aerial Cable', km: 3.2, issued: '2024-08-14', expiry: '2026-12-15', status: 'expiring' },
+  { id: 'ROW-KDR-001', province: 'Kandahar', authority: 'Kandahar City Council', permitNo: 'KDR/ROW/2023/033', type: 'Underground OFC', km: 28.0, issued: '2023-05-01', expiry: '2026-04-30', status: 'expired' },
+  { id: 'ROW-HRT-001', province: 'Herat', authority: 'Herat Municipality', permitNo: 'HRT/ROW/2024/019', type: 'Underground OFC', km: 35.8, issued: '2024-12-20', expiry: '2029-12-19', status: 'active' },
+  { id: 'ROW-MZR-001', province: 'Mazar-i-Sharif', authority: 'Balkh Province Authority', permitNo: 'MZR/ROW/2024/025', type: 'Microwave Corridor', km: 120.0, issued: '2024-03-15', expiry: '2027-03-14', status: 'active' },
+  { id: 'ROW-JLB-001', province: 'Jalalabad', authority: 'Nangarhar Province DPW', permitNo: 'JLB/ROW/2024/007', type: 'Underground OFC', km: 18.5, issued: '2024-07-08', expiry: '2027-07-07', status: 'active' },
+  { id: 'ROW-KND-001', province: 'Kunduz', authority: 'Kunduz Municipality', permitNo: 'KND/ROW/2025/003', type: 'Underground OFC', km: 12.0, issued: '2025-10-01', expiry: '2030-09-30', status: 'active' },
 ];
 
 const EMF_CERTS = [
-  { id: 'EMF-KBL-01', siteId: 'ATM-KBL-001', site: 'Kabul Central Tower', province: 'Kabul', certNo: 'ATRA/EMF/KBL/2025/001', issued: '2025-01-10', expiry: '2026-01-09', status: 'expired', eirp: 43.2 },
-  { id: 'EMF-KBL-02', siteId: 'ATM-KBL-002', site: 'Wazir Akbar Khan BTS', province: 'Kabul', certNo: 'ATRA/EMF/KBL/2025/002', issued: '2025-03-01', expiry: '2026-02-28', status: 'expired', eirp: 41.8 },
-  { id: 'EMF-KBL-03', siteId: 'ATM-KBL-003', site: 'Karte Char Node', province: 'Kabul', certNo: 'ATRA/EMF/KBL/2026/003', issued: '2026-01-15', expiry: '2027-01-14', status: 'active', eirp: 40.5 },
-  { id: 'EMF-KDR-01', siteId: 'ATM-KDR-001', site: 'Kandahar Main Tower', province: 'Kandahar', certNo: 'ATRA/EMF/KDR/2025/004', issued: '2025-08-20', expiry: '2026-08-19', status: 'active', eirp: 44.1 },
-  { id: 'EMF-HRT-01', siteId: 'ATM-HRT-001', site: 'Herat City BTS', province: 'Herat', certNo: 'ATRA/EMF/HRT/2026/005', issued: '2026-02-01', expiry: '2027-01-31', status: 'active', eirp: 42.3 },
-  { id: 'EMF-MZR-01', siteId: 'ATM-MZR-001', site: 'Mazar-i-Sharif Central', province: 'Mazar-i-Sharif', certNo: 'ATRA/EMF/MZR/2025/006', issued: '2025-11-01', expiry: '2026-05-25', status: 'expiring', eirp: 43.8 },
-  { id: 'EMF-JLB-01', siteId: 'ATM-JLB-001', site: 'Jalalabad City Tower', province: 'Jalalabad', certNo: 'ATRA/EMF/JLB/2026/007', issued: '2026-03-10', expiry: '2027-03-09', status: 'active', eirp: 42.0 },
-  { id: 'EMF-KND-01', siteId: 'ATM-KND-001', site: 'Kunduz North BTS', province: 'Kunduz', certNo: 'ATRA/EMF/KND/2026/008', issued: '2026-02-20', expiry: '2027-02-19', status: 'active', eirp: 41.5 },
+  { id: 'EMF-KBL-01', siteId: 'ATM-KBL-001', site: 'Kabul Central Tower', province: 'Kabul', certNo: 'ATRA/EMF/KBL/2025/001', issued: '2025-07-10', expiry: '2026-07-09', status: 'expired', eirp: 43.2 },
+  { id: 'EMF-KBL-02', siteId: 'ATM-KBL-002', site: 'Wazir Akbar Khan BTS', province: 'Kabul', certNo: 'ATRA/EMF/KBL/2025/002', issued: '2025-09-01', expiry: '2026-08-28', status: 'expired', eirp: 41.8 },
+  { id: 'EMF-KBL-03', siteId: 'ATM-KBL-003', site: 'Karte Char Node', province: 'Kabul', certNo: 'ATRA/EMF/KBL/2026/003', issued: '2026-07-15', expiry: '2027-07-14', status: 'active', eirp: 40.5 },
+  { id: 'EMF-KDR-01', siteId: 'ATM-KDR-001', site: 'Kandahar Main Tower', province: 'Kandahar', certNo: 'ATRA/EMF/KDR/2026/004', issued: '2026-02-20', expiry: '2027-02-19', status: 'active', eirp: 44.1 },
+  { id: 'EMF-HRT-01', siteId: 'ATM-HRT-001', site: 'Herat City BTS', province: 'Herat', certNo: 'ATRA/EMF/HRT/2026/005', issued: '2026-08-01', expiry: '2027-07-31', status: 'active', eirp: 42.3 },
+  { id: 'EMF-MZR-01', siteId: 'ATM-MZR-001', site: 'Mazar-i-Sharif Central', province: 'Mazar-i-Sharif', certNo: 'ATRA/EMF/MZR/2026/006', issued: '2026-05-01', expiry: '2026-11-25', status: 'expiring', eirp: 43.8 },
+  { id: 'EMF-JLB-01', siteId: 'ATM-JLB-001', site: 'Jalalabad City Tower', province: 'Jalalabad', certNo: 'ATRA/EMF/JLB/2026/007', issued: '2026-09-10', expiry: '2027-09-09', status: 'active', eirp: 42.0 },
+  { id: 'EMF-KND-01', siteId: 'ATM-KND-001', site: 'Kunduz North BTS', province: 'Kunduz', certNo: 'ATRA/EMF/KND/2026/008', issued: '2026-08-20', expiry: '2027-08-19', status: 'active', eirp: 41.5 },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -119,7 +120,7 @@ export function ComplianceRegistry() {
       <div className="flex items-center justify-between pb-1">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Compliance Registry</h2>
-          <p className="text-sm text-gray-500 mt-0.5">ATOMA Afghanistan · ATRA Regulatory & License Compliance</p>
+          <p className="text-sm text-gray-500 mt-0.5">AsiaInfo DMS · ATRA Regulatory & License Compliance</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
@@ -264,23 +265,12 @@ function OverviewTab() {
 
 function SpectrumTab() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Spectrum License Portfolio — ATRA Afghanistan</p>
-        <span className="text-xs text-gray-400">{SPECTRUM_LICENSES.length} licenses</span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100">
-              {['Band', 'Technology', 'Bandwidth', 'License No.', 'Coverage', 'Issued', 'Expiry', 'Status'].map(h => (
-                <th key={h} className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide pb-2 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {SPECTRUM_LICENSES.map(l => (
-              <tr key={l.id} className="hover:bg-gray-50 transition-colors">
+    <RecordList rows={SPECTRUM_LICENSES}
+      columns={['Band', 'Technology', 'Bandwidth', 'License No.', 'Coverage', 'Issued', 'Expiry', 'Status']}
+      search={l => [l.band, l.tech, l.licenseNo, l.region]}
+      filters={[{ label: 'Status', value: row => row.status }]}
+      renderRow={l => (
+            <tr key={l.id} className="hover:bg-gray-50 transition-colors">
                 <td className="py-2.5 pr-4">
                   <div className="flex items-center gap-2">
                     <Radio size={13} className="text-violet-500 shrink-0" />
@@ -295,11 +285,8 @@ function SpectrumTab() {
                 <td className="py-2.5 pr-4 text-xs text-gray-800 font-medium">{fmtDate(l.expiry)}</td>
                 <td className="py-2.5"><ExpiryBadge status={l.status} expiry={l.expiry} /></td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      )}
+    />
   );
 }
 
@@ -307,23 +294,12 @@ function SpectrumTab() {
 
 function FilingsTab() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Regulatory Submissions — Afghanistan Telecom Regulatory Authority</p>
-        <span className="text-xs text-gray-400">{ATRA_FILINGS.length} filings</span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100">
-              {['Filing Type', 'Period', 'Due Date', 'Submitted', 'Reference', 'Status'].map(h => (
-                <th key={h} className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide pb-2 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {ATRA_FILINGS.map(f => (
-              <tr key={f.id} className="hover:bg-gray-50 transition-colors">
+    <RecordList rows={ATRA_FILINGS}
+      columns={['Filing Type', 'Period', 'Due Date', 'Submitted', 'Reference', 'Status']}
+      search={f => [f.type, f.id, f.period, f.ref]}
+      filters={[{ label: 'Status', value: row => row.status }]}
+      renderRow={f => (
+            <tr key={f.id} className="hover:bg-gray-50 transition-colors">
                 <td className="py-2.5 pr-4">
                   <div className="flex items-center gap-2">
                     <FileCheck size={13} className="text-amber-600 shrink-0" />
@@ -338,11 +314,8 @@ function FilingsTab() {
                 <td className="py-2.5 pr-4 text-xs font-mono text-gray-400">{f.ref || '—'}</td>
                 <td className="py-2.5"><FilingStatusBadge status={f.status} /></td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      )}
+    />
   );
 }
 
@@ -350,23 +323,12 @@ function FilingsTab() {
 
 function RowTab() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Right of Way Permits — Provincial Authorities</p>
-        <span className="text-xs text-gray-400">{ROW_PERMITS.length} permits · {ROW_PERMITS.reduce((s, p) => s + p.km, 0).toFixed(1)} km total</span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100">
-              {['Province', 'Issuing Authority', 'Permit No.', 'Type', 'Route km', 'Issued', 'Expiry', 'Status'].map(h => (
-                <th key={h} className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide pb-2 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {ROW_PERMITS.map(p => (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+    <RecordList rows={ROW_PERMITS}
+      columns={['Province', 'Issuing Authority', 'Permit No.', 'Type', 'Route km', 'Issued', 'Expiry', 'Status']}
+      search={p => [p.province, p.authority, p.permitNo, p.type]}
+      filters={[{ label: 'Status', value: row => row.status }]}
+      renderRow={p => (
+            <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                 <td className="py-2.5 pr-4">
                   <div className="flex items-center gap-2">
                     <MapPin size={13} className="text-sky-500 shrink-0" />
@@ -381,11 +343,8 @@ function RowTab() {
                 <td className="py-2.5 pr-4 text-xs font-medium text-gray-800">{fmtDate(p.expiry)}</td>
                 <td className="py-2.5"><ExpiryBadge status={p.status} expiry={p.expiry} /></td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      )}
+    />
   );
 }
 
@@ -393,23 +352,12 @@ function RowTab() {
 
 function EmfTab() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">EMF Compliance Certificates — Tower Sites</p>
-        <span className="text-xs text-gray-400">{EMF_CERTS.length} sites certified</span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100">
-              {['Site ID', 'Site Name', 'Province', 'Cert No.', 'EIRP (dBW)', 'Issued', 'Expiry', 'Status'].map(h => (
-                <th key={h} className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide pb-2 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {EMF_CERTS.map(c => (
-              <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+    <RecordList rows={EMF_CERTS}
+      columns={['Site ID', 'Site Name', 'Province', 'Cert No.', 'EIRP (dBW)', 'Issued', 'Expiry', 'Status']}
+      search={c => [c.siteId, c.site, c.province, c.certNo]}
+      filters={[{ label: 'Status', value: row => row.status }]}
+      renderRow={c => (
+            <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                 <td className="py-2.5 pr-4 text-xs font-mono text-gray-500">{c.siteId}</td>
                 <td className="py-2.5 pr-4 text-sm font-medium text-gray-800">{c.site}</td>
                 <td className="py-2.5 pr-4 text-xs text-gray-600">{c.province}</td>
@@ -419,10 +367,7 @@ function EmfTab() {
                 <td className="py-2.5 pr-4 text-xs font-medium text-gray-800">{fmtDate(c.expiry)}</td>
                 <td className="py-2.5"><ExpiryBadge status={c.status} expiry={c.expiry} /></td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      )}
+    />
   );
 }

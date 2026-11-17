@@ -1,17 +1,475 @@
 {
   "cafs": [
     {
+      "blueprintSnapshot": {
+        "name": "Individual Postpaid Registration Workflow Check",
+        "description": "",
+        "customerType": "Individual",
+        "businessType": "SIM Registration",
+        "channel": "Direct",
+        "product": "Postpaid Standard 20 GB",
+        "isActive": true,
+        "termsAndConditions": "<h2>Customer&nbsp;Declaration</h2><p>I,&nbsp;<strong>{{fullName}}</strong>,&nbsp;holder&nbsp;of&nbsp;ID&nbsp;<strong>{{idNumber}}</strong>,&nbsp;hereby&nbsp;certify&nbsp;that...</p>",
+        "id": "TPL-3KXTMC2K4",
+        "lastModified": "2026-11-17T02:47:50.718Z",
+        "fields": [
+          {
+            "id": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "id": "idNumber",
+            "label": "ID Number",
+            "type": "text",
+            "required": true
+          }
+        ],
+        "version": "1.0",
+        "lifecycle": "active"
+      },
+      "templateValues": {
+        "idType": "National ID",
+        "fullName": "Workflow Test Subscriber",
+        "idNumber": "TEST-2026-001",
+        "contactNumber": "0700000999",
+        "address": "Kabul Test District"
+      },
+      "customerType": "Individual",
+      "fullName": "Workflow Test Subscriber",
+      "idType": "National ID",
+      "idNumber": "TEST-2026-001",
+      "contactNumber": "0700000999",
+      "address": "Kabul Test District",
+      "serviceType": "Postpaid",
+      "planName": "Postpaid Standard 20 GB",
+      "createdBy": "USR-ADMIN-001",
+      "createdByUsername": "admin",
+      "documents": [
+        {
+          "id": "FILE-5b97cf66-12bd-43cf-b34d-b7b3c644e4ce",
+          "requirementCode": "identity",
+          "name": "identity-workflow.jpg",
+          "type": "identity",
+          "uploadDate": "2026-11-17",
+          "status": "Unverified",
+          "fileId": "FILE-5b97cf66-12bd-43cf-b34d-b7b3c644e4ce"
+        },
+        {
+          "id": "FORM-1794884214405",
+          "requirementCode": "application-form",
+          "name": "Individual Postpaid Registration Workflow Check",
+          "type": "Application form",
+          "uploadDate": "2026-11-17",
+          "status": "Unverified"
+        }
+      ],
+      "status": "Pending",
+      "submissionDate": "2026-11-17T02:56:54.405Z",
+      "id": "CAF-2026-045",
+      "history": [
+        {
+          "id": "7be04a54-913c-42c4-bdec-a6e55c790c96",
+          "action": "submitted",
+          "at": "2026-11-17T02:56:54.434Z",
+          "status": "Pending",
+          "files": [
+            "identity-workflow.jpg",
+            "Individual Postpaid Registration Workflow Check"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-044",
+      "customerType": "Individual",
+      "fullName": "Omid Rahmani",
+      "idNumber": "KBL-SIM-308",
+      "idType": "National ID",
+      "address": "District 8, Kabul",
+      "contactNumber": "0700000308",
+      "serviceType": "Postpaid",
+      "planName": "Postpaid Standard 20 GB",
+      "status": "Archived",
+      "submissionDate": "2026-11-15T10:19:00.000Z",
+      "createdBy": "USR-ADMIN-001",
+      "createdByUsername": "admin",
+      "documents": [
+        {
+          "id": "CAF-2026-044-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Verified"
+        },
+        {
+          "id": "CAF-2026-044-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Verified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-044-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T10:19:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        },
+        {
+          "id": "CAF-2026-044-reviewed",
+          "action": "status_changed",
+          "at": "2026-11-15T10:34:00.000Z",
+          "status": "Archived"
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-043",
+      "customerType": "Individual",
+      "fullName": "Nadia Wahidi",
+      "idNumber": "KBL-SIM-307",
+      "idType": "National ID",
+      "address": "District 7, Kabul",
+      "contactNumber": "0700000307",
+      "serviceType": "Prepaid",
+      "planName": "Prepaid Standard",
+      "status": "Archived",
+      "submissionDate": "2026-11-15T09:42:00.000Z",
+      "createdBy": "USR-AGENT-001",
+      "createdByUsername": "agent",
+      "documents": [
+        {
+          "id": "CAF-2026-043-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Verified"
+        },
+        {
+          "id": "CAF-2026-043-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Verified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-043-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T09:42:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        },
+        {
+          "id": "CAF-2026-043-reviewed",
+          "action": "status_changed",
+          "at": "2026-11-15T09:57:00.000Z",
+          "status": "Archived"
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-042",
+      "customerType": "Individual",
+      "fullName": "Samir Azimi",
+      "idNumber": "KBL-SIM-306",
+      "idType": "National ID",
+      "address": "District 6, Kabul",
+      "contactNumber": "0700000306",
+      "serviceType": "Postpaid",
+      "planName": "Postpaid Standard 20 GB",
+      "status": "Correction",
+      "submissionDate": "2026-11-15T09:05:00.000Z",
+      "createdBy": "USR-AGENT-001",
+      "createdByUsername": "agent",
+      "documents": [
+        {
+          "id": "CAF-2026-042-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        },
+        {
+          "id": "CAF-2026-042-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-042-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T09:05:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        },
+        {
+          "id": "CAF-2026-042-reviewed",
+          "action": "status_changed",
+          "at": "2026-11-15T09:20:00.000Z",
+          "status": "Correction",
+          "reason": "Please upload a clearer identity document."
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-041",
+      "customerType": "Individual",
+      "fullName": "Roya Qasimi",
+      "idNumber": "KBL-SIM-305",
+      "idType": "National ID",
+      "address": "District 5, Kabul",
+      "contactNumber": "0700000305",
+      "serviceType": "Prepaid",
+      "planName": "Prepaid Standard",
+      "status": "Correction",
+      "submissionDate": "2026-11-15T08:28:00.000Z",
+      "createdBy": "USR-ADMIN-001",
+      "createdByUsername": "admin",
+      "documents": [
+        {
+          "id": "CAF-2026-041-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        },
+        {
+          "id": "CAF-2026-041-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-041-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T08:28:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        },
+        {
+          "id": "CAF-2026-041-reviewed",
+          "action": "status_changed",
+          "at": "2026-11-15T08:43:00.000Z",
+          "status": "Correction",
+          "reason": "Please provide the signed registration form."
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-040",
+      "customerType": "Individual",
+      "fullName": "Farid Yousufi",
+      "idNumber": "KBL-SIM-304",
+      "idType": "National ID",
+      "address": "District 4, Kabul",
+      "contactNumber": "0700000304",
+      "serviceType": "Postpaid",
+      "planName": "Postpaid Standard 20 GB",
+      "status": "Correction",
+      "submissionDate": "2026-11-15T07:51:00.000Z",
+      "createdBy": "USR-ADMIN-001",
+      "createdByUsername": "admin",
+      "documents": [
+        {
+          "id": "CAF-2026-040-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        },
+        {
+          "id": "CAF-2026-040-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-040-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T07:51:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        },
+        {
+          "id": "CAF-2026-040-reviewed",
+          "action": "status_changed",
+          "at": "2026-11-15T08:06:00.000Z",
+          "status": "Correction",
+          "reason": "Please upload a clearer identity document."
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-039",
+      "customerType": "Individual",
+      "fullName": "Mina Habibi",
+      "idNumber": "KBL-SIM-303",
+      "idType": "National ID",
+      "address": "District 3, Kabul",
+      "contactNumber": "0700000303",
+      "serviceType": "Prepaid",
+      "planName": "Prepaid Standard",
+      "status": "Pending",
+      "submissionDate": "2026-11-15T07:14:00.000Z",
+      "createdBy": "USR-ADMIN-001",
+      "createdByUsername": "admin",
+      "documents": [
+        {
+          "id": "CAF-2026-039-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        },
+        {
+          "id": "CAF-2026-039-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-039-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T07:14:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-038",
+      "customerType": "Individual",
+      "fullName": "Yasir Nabizada",
+      "idNumber": "KBL-SIM-302",
+      "idType": "National ID",
+      "address": "District 2, Kabul",
+      "contactNumber": "0700000302",
+      "serviceType": "Postpaid",
+      "planName": "Postpaid Standard 20 GB",
+      "status": "Pending",
+      "submissionDate": "2026-11-15T06:37:00.000Z",
+      "createdBy": "USR-AGENT-001",
+      "createdByUsername": "agent",
+      "documents": [
+        {
+          "id": "CAF-2026-038-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        },
+        {
+          "id": "CAF-2026-038-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-038-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T06:37:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CAF-2026-037",
+      "customerType": "Individual",
+      "fullName": "Laila Farhadi",
+      "idNumber": "KBL-SIM-301",
+      "idType": "National ID",
+      "address": "District 1, Kabul",
+      "contactNumber": "0700000301",
+      "serviceType": "Prepaid",
+      "planName": "Prepaid Standard",
+      "status": "Pending",
+      "submissionDate": "2026-11-15T06:00:00.000Z",
+      "createdBy": "USR-AGENT-001",
+      "createdByUsername": "agent",
+      "documents": [
+        {
+          "id": "CAF-2026-037-DOC-1",
+          "name": "National ID Card",
+          "type": "National ID Card",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        },
+        {
+          "id": "CAF-2026-037-DOC-2",
+          "name": "SIM registration form",
+          "type": "SIM Form",
+          "uploadDate": "2026-11-15",
+          "status": "Unverified"
+        }
+      ],
+      "history": [
+        {
+          "id": "CAF-2026-037-submitted",
+          "action": "submitted",
+          "at": "2026-11-15T06:00:00.000Z",
+          "status": "Pending",
+          "files": [
+            "National ID Card",
+            "SIM registration form"
+          ]
+        }
+      ]
+    },
+    {
       "customerType": "Individual",
       "fullName": "Ahmad Karimi",
       "idNumber": "T-20481922",
       "idType": "Tazkira",
-      "address": "Karte 3, District 6, Kabul, Afghanistan",
+      "address": "Karte 3, District 6, Kabul, DMS",
       "contactNumber": "+93 70 456 7890",
       "email": "ahmad.karimi@gmail.com",
       "serviceType": "Prepaid",
-      "planName": "ATOMA Elite 50GB",
+      "planName": "AsiaInfo Elite 50GB",
       "status": "Approved",
-      "submissionDate": "2026-04-10T08:30:00Z",
+      "submissionDate": "2026-10-10T08:30:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -19,21 +477,21 @@
           "id": "D001-1",
           "name": "Tazkira Front",
           "type": "ID Card",
-          "uploadDate": "2026-04-10",
+          "uploadDate": "2026-10-10",
           "status": "Verified"
         },
         {
           "id": "D001-2",
           "name": "Customer Photo",
           "type": "Photo",
-          "uploadDate": "2026-04-10",
+          "uploadDate": "2026-10-10",
           "status": "Verified"
         },
         {
           "id": "D001-3",
           "name": "SIM Application Form",
           "type": "SIM Form",
-          "uploadDate": "2026-04-10",
+          "uploadDate": "2026-10-10",
           "status": "Verified"
         }
       ],
@@ -42,16 +500,16 @@
     {
       "id": "CAF-2026-002",
       "customerType": "Corporate",
-      "fullName": "Afghan Tech Solutions Ltd",
+      "fullName": "AsiaInfo Tech Solutions Ltd",
       "idNumber": "C-998877",
       "idType": "Business License",
-      "address": "Shahr-e-Naw Industrial Zone, Kabul, Afghanistan",
+      "address": "Shahr-e-Naw Industrial Zone, Kabul, DMS",
       "contactNumber": "+93 20 888 9999",
-      "email": "ops@afghantechsolutions.af",
+      "email": "ops@asiainfotechsolutions.com",
       "serviceType": "Postpaid",
-      "planName": "ATOMA Enterprise Unlimited",
+      "planName": "AsiaInfo Enterprise Unlimited",
       "status": "Approved",
-      "submissionDate": "2026-04-12T09:15:00Z",
+      "submissionDate": "2026-10-12T09:15:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -59,21 +517,21 @@
           "id": "D002-1",
           "name": "Business License",
           "type": "Corporate Doc",
-          "uploadDate": "2026-04-12",
+          "uploadDate": "2026-10-12",
           "status": "Verified"
         },
         {
           "id": "D002-2",
           "name": "Authorized Signatory POA",
           "type": "Legal",
-          "uploadDate": "2026-04-12",
+          "uploadDate": "2026-10-12",
           "status": "Verified"
         },
         {
           "id": "D002-3",
           "name": "Company Tax Certificate",
           "type": "Tax Doc",
-          "uploadDate": "2026-04-12",
+          "uploadDate": "2026-10-12",
           "status": "Verified"
         }
       ],
@@ -91,13 +549,13 @@
       "fullName": "Fahima Noori",
       "idNumber": "P-77881234",
       "idType": "Passport",
-      "address": "Wazir Akbar Khan, Kabul, Afghanistan",
+      "address": "Wazir Akbar Khan, Kabul, DMS",
       "contactNumber": "+93 79 322 8811",
       "email": "fahima.noori@hotmail.com",
       "serviceType": "Postpaid",
-      "planName": "ATOMA Business Pro",
+      "planName": "AsiaInfo Business Pro",
       "status": "Approved",
-      "submissionDate": "2026-04-15T11:00:00Z",
+      "submissionDate": "2026-10-15T11:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -105,21 +563,21 @@
           "id": "D003-1",
           "name": "Passport Copy",
           "type": "ID Card",
-          "uploadDate": "2026-04-15",
+          "uploadDate": "2026-10-15",
           "status": "Verified"
         },
         {
           "id": "D003-2",
           "name": "Customer Photo",
           "type": "Photo",
-          "uploadDate": "2026-04-15",
+          "uploadDate": "2026-10-15",
           "status": "Verified"
         },
         {
           "id": "D003-3",
           "name": "Address Proof",
           "type": "Address Proof",
-          "uploadDate": "2026-04-15",
+          "uploadDate": "2026-10-15",
           "status": "Verified"
         }
       ]
@@ -130,13 +588,13 @@
       "fullName": "Herat Cement Company",
       "idNumber": "C-771234",
       "idType": "Business License",
-      "address": "Herat Industrial Park, Phase 2, Herat, Afghanistan",
+      "address": "Herat Industrial Park, Phase 2, Herat, DMS",
       "contactNumber": "+93 40 555 6666",
       "email": "admin@heratcement.af",
       "serviceType": "Data Only",
-      "planName": "ATOMA DIA-ILL 100Mbps",
+      "planName": "AsiaInfo DIA-ILL 100Mbps",
       "status": "Approved",
-      "submissionDate": "2026-04-18T07:45:00Z",
+      "submissionDate": "2026-10-18T07:45:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -144,21 +602,21 @@
           "id": "D004-1",
           "name": "Business Registration",
           "type": "Corporate Doc",
-          "uploadDate": "2026-04-18",
+          "uploadDate": "2026-10-18",
           "status": "Verified"
         },
         {
           "id": "D004-2",
           "name": "Site Survey Report",
           "type": "Technical Doc",
-          "uploadDate": "2026-04-18",
+          "uploadDate": "2026-10-18",
           "status": "Verified"
         },
         {
           "id": "D004-3",
           "name": "Signatory ID",
           "type": "ID Card",
-          "uploadDate": "2026-04-18",
+          "uploadDate": "2026-10-18",
           "status": "Verified"
         }
       ],
@@ -176,12 +634,12 @@
       "fullName": "Najiba Ahmadzai",
       "idNumber": "T-55667788",
       "idType": "Tazkira",
-      "address": "Karte 4, District 7, Kabul, Afghanistan",
+      "address": "Karte 4, District 7, Kabul, DMS",
       "contactNumber": "+93 78 112 5544",
       "serviceType": "Prepaid",
-      "planName": "ATOMA Starter 10GB",
+      "planName": "AsiaInfo Starter 10GB",
       "status": "Approved",
-      "submissionDate": "2026-04-20T13:30:00Z",
+      "submissionDate": "2026-10-20T13:30:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -189,14 +647,14 @@
           "id": "D005-1",
           "name": "Tazkira Front",
           "type": "ID Card",
-          "uploadDate": "2026-04-20",
+          "uploadDate": "2026-10-20",
           "status": "Verified"
         },
         {
           "id": "D005-2",
           "name": "Photo",
           "type": "Photo",
-          "uploadDate": "2026-04-20",
+          "uploadDate": "2026-10-20",
           "status": "Verified"
         }
       ]
@@ -207,13 +665,13 @@
       "fullName": "Global Logistics Group (Mazar)",
       "idNumber": "C-112233",
       "idType": "Business License",
-      "address": "Airport Road, Mazar-i-Sharif, Balkh, Afghanistan",
+      "address": "Airport Road, Mazar-i-Sharif, Balkh, DMS",
       "contactNumber": "+93 50 444 3333",
       "email": "logistics@glg-mazar.af",
       "serviceType": "Postpaid",
-      "planName": "ATOMA Enterprise Unlimited",
+      "planName": "AsiaInfo Enterprise Unlimited",
       "status": "Archived",
-      "submissionDate": "2026-03-05T09:00:00Z",
+      "submissionDate": "2026-09-15T09:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -221,14 +679,14 @@
           "id": "D006-1",
           "name": "Business License",
           "type": "Corporate Doc",
-          "uploadDate": "2026-03-05",
+          "uploadDate": "2026-09-15",
           "status": "Verified"
         },
         {
           "id": "D006-2",
           "name": "Tax Certificate",
           "type": "Tax Doc",
-          "uploadDate": "2026-03-05",
+          "uploadDate": "2026-09-15",
           "status": "Verified"
         }
       ],
@@ -246,12 +704,12 @@
       "fullName": "Abdul Rahman Wali",
       "idNumber": "T-88776655",
       "idType": "Tazkira",
-      "address": "Share Naw, Kandahar City, Kandahar, Afghanistan",
+      "address": "Share Naw, Kandahar City, Kandahar, DMS",
       "contactNumber": "+93 74 111 2222",
       "serviceType": "Prepaid",
-      "planName": "ATOMA Elite 50GB",
+      "planName": "AsiaInfo Elite 50GB",
       "status": "Correction",
-      "submissionDate": "2026-05-01T10:00:00Z",
+      "submissionDate": "2026-11-01T10:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -259,14 +717,14 @@
           "id": "D007-1",
           "name": "Tazkira Front",
           "type": "ID Card",
-          "uploadDate": "2026-05-01",
+          "uploadDate": "2026-11-01",
           "status": "Unverified"
         },
         {
           "id": "D007-2",
           "name": "Customer Photo",
           "type": "Photo",
-          "uploadDate": "2026-05-01",
+          "uploadDate": "2026-11-01",
           "status": "Unverified"
         }
       ]
@@ -277,13 +735,13 @@
       "fullName": "Mazar Trading Group",
       "idNumber": "C-334455",
       "idType": "Business License",
-      "address": "Balkh Street, Mazar-i-Sharif, Afghanistan",
+      "address": "Balkh Street, Mazar-i-Sharif, DMS",
       "contactNumber": "+93 50 777 8888",
       "email": "ceo@mazartrading.af",
       "serviceType": "Data Only",
-      "planName": "ATOMA Fixed Wi-Fi Business",
+      "planName": "AsiaInfo Fixed Wi-Fi Business",
       "status": "Correction",
-      "submissionDate": "2026-05-02T14:20:00Z",
+      "submissionDate": "2026-11-02T14:20:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -291,14 +749,14 @@
           "id": "D008-1",
           "name": "Business Registration",
           "type": "Corporate Doc",
-          "uploadDate": "2026-05-02",
+          "uploadDate": "2026-11-02",
           "status": "Unverified"
         },
         {
           "id": "D008-2",
           "name": "Authorized Signatory Tazkira",
           "type": "ID Card",
-          "uploadDate": "2026-05-02",
+          "uploadDate": "2026-11-02",
           "status": "Unverified"
         }
       ],
@@ -316,13 +774,13 @@
       "fullName": "Safia Rahimi",
       "idNumber": "T-44332211",
       "idType": "Tazkira",
-      "address": "Karte Char, District 8, Kabul, Afghanistan",
+      "address": "Karte Char, District 8, Kabul, DMS",
       "contactNumber": "+93 70 987 6543",
       "email": "safia.rahimi@yahoo.com",
       "serviceType": "Postpaid",
-      "planName": "ATOMA Business Pro",
+      "planName": "AsiaInfo Business Pro",
       "status": "Correction",
-      "submissionDate": "2026-05-03T09:45:00Z",
+      "submissionDate": "2026-11-03T09:45:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -330,21 +788,21 @@
           "id": "D009-1",
           "name": "Tazkira Copy",
           "type": "ID Card",
-          "uploadDate": "2026-05-03",
+          "uploadDate": "2026-11-03",
           "status": "Unverified"
         },
         {
           "id": "D009-2",
           "name": "Photo",
           "type": "Photo",
-          "uploadDate": "2026-05-03",
+          "uploadDate": "2026-11-03",
           "status": "Unverified"
         },
         {
           "id": "D009-3",
           "name": "Address Proof",
           "type": "Address Proof",
-          "uploadDate": "2026-05-03",
+          "uploadDate": "2026-11-03",
           "status": "Unverified"
         }
       ]
@@ -355,13 +813,13 @@
       "fullName": "Jalalabad Pharma Distributors",
       "idNumber": "C-556677",
       "idType": "Business License",
-      "address": "Ghazi Abad Road, Jalalabad, Nangarhar, Afghanistan",
+      "address": "Ghazi Abad Road, Jalalabad, Nangarhar, DMS",
       "contactNumber": "+93 93 111 9999",
       "email": "info@jlbpharma.af",
       "serviceType": "Postpaid",
-      "planName": "ATOMA Enterprise Unlimited",
+      "planName": "AsiaInfo Enterprise Unlimited",
       "status": "Correction",
-      "submissionDate": "2026-05-04T11:30:00Z",
+      "submissionDate": "2026-11-04T11:30:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -369,14 +827,14 @@
           "id": "D010-1",
           "name": "Business License",
           "type": "Corporate Doc",
-          "uploadDate": "2026-05-04",
+          "uploadDate": "2026-11-04",
           "status": "Unverified"
         },
         {
           "id": "D010-2",
           "name": "Signatory POA",
           "type": "Legal",
-          "uploadDate": "2026-05-04",
+          "uploadDate": "2026-11-04",
           "status": "Unverified"
         }
       ],
@@ -394,12 +852,12 @@
       "fullName": "Zahra Hussaini",
       "idNumber": "P-55667788",
       "idType": "Passport",
-      "address": "Macroyan Block 3, Kabul, Afghanistan",
+      "address": "Macroyan Block 3, Kabul, DMS",
       "contactNumber": "+93 78 555 1122",
       "serviceType": "Data Only",
-      "planName": "ATOMA FiberOne Home 30Mbps",
+      "planName": "AsiaInfo FiberOne Home 30Mbps",
       "status": "Correction",
-      "submissionDate": "2026-04-28T14:20:00Z",
+      "submissionDate": "2026-10-28T14:20:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -407,7 +865,7 @@
           "id": "D011-1",
           "name": "Passport Copy",
           "type": "ID Card",
-          "uploadDate": "2026-04-28",
+          "uploadDate": "2026-10-28",
           "status": "Rejected"
         }
       ]
@@ -418,12 +876,12 @@
       "fullName": "Samiullah Khan",
       "idNumber": "T-11223344",
       "idType": "Tazkira",
-      "address": "Aino Mina Township, Kandahar City, Afghanistan",
+      "address": "Aino Mina Township, Kandahar City, DMS",
       "contactNumber": "+93 74 333 5566",
       "serviceType": "Prepaid",
-      "planName": "ATOMA Starter 10GB",
+      "planName": "AsiaInfo Starter 10GB",
       "status": "Correction",
-      "submissionDate": "2026-04-30T10:00:00Z",
+      "submissionDate": "2026-10-30T10:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -431,7 +889,7 @@
           "id": "D012-1",
           "name": "Tazkira Front",
           "type": "ID Card",
-          "uploadDate": "2026-04-30",
+          "uploadDate": "2026-10-30",
           "status": "Rejected"
         }
       ]
@@ -442,12 +900,12 @@
       "fullName": "Mohammad Daoud Safi",
       "idNumber": "T-99887766",
       "idType": "Tazkira",
-      "address": "Kunduz City Centre, Kunduz, Afghanistan",
+      "address": "Kunduz City Centre, Kunduz, DMS",
       "contactNumber": "+93 76 222 3344",
       "serviceType": "Prepaid",
-      "planName": "ATOMA Starter 10GB",
+      "planName": "AsiaInfo Starter 10GB",
       "status": "Rejected",
-      "submissionDate": "2026-04-25T16:00:00Z",
+      "submissionDate": "2026-10-25T16:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -455,7 +913,7 @@
           "id": "D013-1",
           "name": "Tazkira Copy",
           "type": "ID Card",
-          "uploadDate": "2026-04-25",
+          "uploadDate": "2026-10-25",
           "status": "Rejected"
         }
       ]
@@ -466,13 +924,13 @@
       "fullName": "Bamyan Tourism Agency",
       "idNumber": "C-889900",
       "idType": "Business License",
-      "address": "Band-e-Amir Road, Bamyan, Afghanistan",
+      "address": "Band-e-Amir Road, Bamyan, DMS",
       "contactNumber": "+93 45 100 2200",
       "email": "tours@bamyantourism.af",
       "serviceType": "Data Only",
-      "planName": "ATOMA Fixed Wi-Fi Business",
+      "planName": "AsiaInfo Fixed Wi-Fi Business",
       "status": "Correction",
-      "submissionDate": "2026-04-22T10:00:00Z",
+      "submissionDate": "2026-10-22T10:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": [
@@ -480,14 +938,14 @@
           "id": "D014-1",
           "name": "Business License",
           "type": "Corporate Doc",
-          "uploadDate": "2026-04-22",
+          "uploadDate": "2026-10-22",
           "status": "Rejected"
         },
         {
           "id": "D014-2",
           "name": "Tax Certificate — Expired",
           "type": "Tax Doc",
-          "uploadDate": "2026-04-22",
+          "uploadDate": "2026-10-22",
           "status": "Rejected"
         }
       ],
@@ -505,12 +963,12 @@
       "fullName": "Wakila Siddiqui",
       "idNumber": "T-66778899",
       "idType": "Tazkira",
-      "address": "Qala-e-Fatullah, Kabul, Afghanistan",
+      "address": "Qala-e-Fatullah, Kabul, DMS",
       "contactNumber": "+93 70 888 1234",
       "serviceType": "Postpaid",
-      "planName": "ATOMA Business Pro",
+      "planName": "AsiaInfo Business Pro",
       "status": "Draft",
-      "submissionDate": "2026-05-06T17:00:00Z",
+      "submissionDate": "2026-11-06T17:00:00Z",
       "createdBy": "USR-AGENT-001",
       "createdByUsername": "agent",
       "documents": []
@@ -521,7 +979,7 @@
       "id": "arc-CAF-2026-036-1778215871301",
       "name": "CAF-2026-036-approved-archive.pdf",
       "size": "786 KB",
-      "archivedAt": "2026-05-08T04:51:11.301Z",
+      "archivedAt": "2026-11-08T04:51:11.301Z",
       "type": "pdf",
       "status": "approved",
       "cafId": "CAF-2026-036"
@@ -530,7 +988,7 @@
       "id": "arc-CAF-2026-031-1778215871252",
       "name": "CAF-2026-031-approved-archive.pdf",
       "size": "766 KB",
-      "archivedAt": "2026-05-08T04:51:11.252Z",
+      "archivedAt": "2026-11-08T04:51:11.252Z",
       "type": "pdf",
       "status": "approved",
       "cafId": "CAF-2026-031"
@@ -539,7 +997,7 @@
       "id": "arc-CAF-2026-027-1778215871056",
       "name": "CAF-2026-027-approved-archive.pdf",
       "size": "805 KB",
-      "archivedAt": "2026-05-08T04:51:11.056Z",
+      "archivedAt": "2026-11-08T04:51:11.056Z",
       "type": "pdf",
       "status": "approved",
       "cafId": "CAF-2026-027"
@@ -548,7 +1006,7 @@
       "id": "arc-CAF-2026-025-1778215606598",
       "name": "CAF-2026-025-approved-archive.pdf",
       "size": "921 KB",
-      "archivedAt": "2026-05-08T04:46:46.598Z",
+      "archivedAt": "2026-11-08T04:46:46.598Z",
       "type": "pdf",
       "status": "approved",
       "cafId": "CAF-2026-025"
@@ -557,7 +1015,7 @@
       "id": "arc-CAF-2026-020-1778215606560",
       "name": "CAF-2026-020-approved-archive.pdf",
       "size": "755 KB",
-      "archivedAt": "2026-05-08T04:46:46.560Z",
+      "archivedAt": "2026-11-08T04:46:46.560Z",
       "type": "pdf",
       "status": "approved",
       "cafId": "CAF-2026-020"
@@ -566,11 +1024,11 @@
       "id": "arc-CAF-2026-016-1778215606454",
       "name": "CAF-2026-016-approved-archive.pdf",
       "size": "729 KB",
-      "archivedAt": "2026-05-08T04:46:46.454Z",
+      "archivedAt": "2026-11-08T04:46:46.454Z",
       "type": "pdf",
       "status": "approved",
       "cafId": "CAF-2026-016"
     }
   ],
-  "nextSeq": 37
+  "nextSeq": 46
 }

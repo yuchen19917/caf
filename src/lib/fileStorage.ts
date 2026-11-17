@@ -1,6 +1,6 @@
 /**
  * 文件存储管理
- * 使用 IndexedDB 存储上传的文件
+ * New uploads are stored by the CAF API; IndexedDB remains readable for older records.
  */
 
 const DB_NAME = 'CAF_FILE_STORAGE';
@@ -44,14 +44,11 @@ class FileStorageManager {
   }
 
   async saveFile(file: File, category: string, cafId?: string): Promise<UploadedFile> {
-    if (!this.db) await this.init();
-
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
       reader.onload = async () => {
-        const uploadedFile: UploadedFile = {
-          id: `FILE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        const uploadedFile = {
           name: file.name,
           type: file.type,
           size: file.size,
@@ -62,15 +59,13 @@ class FileStorageManager {
         };
 
         try {
-          const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
-          const store = transaction.objectStore(STORE_NAME);
-          const request = store.add(uploadedFile);
-
-          request.onsuccess = () => resolve(uploadedFile);
-          request.onerror = () => reject(request.error);
-        } catch (error) {
-          reject(error);
-        }
+          const response = await fetch('/api/files', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(uploadedFile),
+          });
+          if (!response.ok) throw new Error((await response.json().catch(() => null))?.error || 'Unable to store attachment.');
+          resolve(await response.json() as UploadedFile);
+        } catch (error) { reject(error); }
       };
 
       reader.onerror = () => reject(reader.error);
@@ -79,6 +74,11 @@ class FileStorageManager {
   }
 
   async getFile(id: string): Promise<UploadedFile | null> {
+    if (/^FILE-[a-f0-9-]{36}$/i.test(id)) {
+      const response = await fetch(`/api/files/${encodeURIComponent(id)}`);
+      if (response.ok) return response.json() as Promise<UploadedFile>;
+      if (response.status !== 404) throw new Error('Unable to load attachment.');
+    }
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -119,6 +119,11 @@ class FileStorageManager {
   }
 
   async deleteFile(id: string): Promise<void> {
+    if (/^FILE-[a-f0-9-]{36}$/i.test(id)) {
+      const response = await fetch(`/api/files/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Unable to remove attachment.');
+      return;
+    }
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {

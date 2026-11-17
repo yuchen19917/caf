@@ -41,6 +41,7 @@ export interface CAFTemplate {
 }
 
 export interface Document {
+  requirementCode?: string;
   id: string;
   type: string;
   name: string;
@@ -50,13 +51,35 @@ export interface Document {
   fileId?: string; // Reference to IndexedDB file
 }
 
+export interface PrepaidTemplate {
+  id: string;
+  version: number;
+  name: string;
+  fields: { key: 'fullName' | 'idType' | 'idNumber' | 'contactNumber'; label: string; required: boolean; maxLength: number }[];
+  documents: { code: string; label: string; required: boolean }[];
+}
+
 export interface CustomerApplicationForm {
+  blueprintSnapshot?: CAFTemplate;
+  templateValues?: Record<string, string>;
+  history?: {
+    id: string;
+    action: 'submitted' | 'resubmitted' | 'status_changed';
+    at: string;
+    status: CAFStatus;
+    files?: string[];
+    reason?: string;
+  }[];
+  templateVersionId?: string;
+  templateSnapshot?: PrepaidTemplate;
+  correction?: { requirementCode: string; reason: string };
   id: string;
   customerType: CustomerType;
   fullName: string;
   idNumber: string;
   idType: string;
   address: string;
+  billingAddress?: string;
   contactNumber: string;
   email?: string;
   serviceType: ServiceType;

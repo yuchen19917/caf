@@ -51,19 +51,19 @@ cp image/logo.svg src/assets/logo.svg
 **文件**: `src/components/Sidebar.tsx`
 ```typescript
 // 修改前
-<img src="/image/logo.svg" alt="ATOMA Logo" />
+<img src="/image/logo.svg" alt="AsiaInfo Logo" />
 
 // 修改后
-<img src="/logo.svg" alt="ATOMA Logo" />
+<img src="/logo.svg" alt="AsiaInfo Logo" />
 ```
 
 **文件**: `src/components/Login.tsx`
 ```typescript
 // 修改前
-<img src="/image/logo.svg" alt="ATOMA Logo" />
+<img src="/image/logo.svg" alt="AsiaInfo Logo" />
 
 // 修改后
-<img src="/logo.svg" alt="ATOMA Logo" />
+<img src="/logo.svg" alt="AsiaInfo Logo" />
 ```
 
 #### B. Import 引用（通过 new URL）

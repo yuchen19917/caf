@@ -1,24 +1,48 @@
-import React, { useState } from 'react';
+import { getSeedAttachment, loadAttachment } from './lib/attachmentFile';
+import type { CustomerApplicationForm, Document } from './types';
+import { systemPages, type SystemPage } from './lib/systemPages';
+import { PreviewDrawer } from './components/PreviewDrawer';
+import React, { lazy, Suspense, useState } from 'react';
 import { ApplicationProvider } from './context/ApplicationContext';
 import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import CAFList from './components/CAFList';
-import CAFForm from './components/CAFForm';
-import DocumentLibrary from './components/DocumentLibrary';
-import AuditPortal from './components/AuditPortal';
-import { TemplateManagement } from './components/TemplateManagement';
-import { GlobalRulesPage } from './components/GlobalRulesPage';
 import { Login } from './components/Login';
-import { SystemManagement } from './components/SystemManagement';
-import { IntegrationHub } from './components/IntegrationHub';
-import { ComplianceRegistry } from './components/ComplianceRegistry';
-import { SiteRegistry } from './components/SiteRegistry';
-import { ContractManager } from './components/ContractManager';
 import { Bell, Languages, ChevronDown, X, Eye, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from './lib/utils';
 import { fileStorage, type UploadedFile } from './lib/fileStorage';
 import { getRoleDisplayName, getRoleColor, hasPermission, type User as AuthUser } from './lib/auth';
+
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const CAFList = lazy(() => import('./components/CAFList'));
+const CAFForm = lazy(() => import('./components/CAFForm'));
+const DocumentLibrary = lazy(() => import('./components/DocumentLibrary'));
+const AuditPortal = lazy(() => import('./components/AuditPortal'));
+const TemplateManagement = lazy(() => import('./components/TemplateManagement').then(module => ({ default: module.TemplateManagement })));
+const GlobalRulesPage = lazy(() => import('./components/GlobalRulesPage').then(module => ({ default: module.GlobalRulesPage })));
+const SystemManagement = lazy(() => import('./components/SystemManagement').then(module => ({ default: module.SystemManagement })));
+const IntegrationHub = lazy(() => import('./components/IntegrationHub').then(module => ({ default: module.IntegrationHub })));
+const ComplianceRegistry = lazy(() => import('./components/ComplianceRegistry').then(module => ({ default: module.ComplianceRegistry })));
+const SiteRegistry = lazy(() => import('./components/SiteRegistry').then(module => ({ default: module.SiteRegistry })));
+const ContractManager = lazy(() => import('./components/ContractManager').then(module => ({ default: module.ContractManager })));
+
+class PageLoadBoundary extends React.Component<{ children?: React.ReactNode; key?: string }, { failed: boolean }> {
+  declare readonly props: { children?: React.ReactNode };
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div role="alert" className="rounded-xl border border-slate-200 bg-white p-5">
+        <p>Unable to load this page.</p>
+        <button type="button" className="mt-3 text-indigo-700 underline" onClick={() => window.location.reload()}>Reload CAF</button>
+      </div>
+    );
+  }
+}
 
 export default function App() {
   return (
@@ -31,10 +55,12 @@ export default function App() {
 function AppShell() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [applicationShortcut, setApplicationShortcut] = useState<ApplicationShortcut>();
+  const [reviewId, setReviewId] = useState<string>();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [correctionData, setCorrectionData] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const [viewingCAF, setViewingCAF] = useState<any>(null);
+  const [viewingCAF, setViewingCAF] = useState<CustomerApplicationForm | null>(null);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
   const [loadingFileId, setLoadingFileId] = useState<string | null>(null);
 
@@ -52,14 +78,14 @@ function AppShell() {
     setActiveTab('new-caf');
   };
 
-  const handleViewCAF = (caf: any) => {
+  const handleViewCAF = (caf: CustomerApplicationForm) => {
     setViewingCAF(caf);
   };
 
-  const handlePreviewFile = async (fileId: string) => {
-    setLoadingFileId(fileId);
+  const handlePreviewFile = async (caf: CustomerApplicationForm, doc: Document) => {
+    setLoadingFileId(doc.id);
     try {
-      const file = await fileStorage.getFile(fileId);
+      const file = await loadAttachment(caf, doc);
       if (file) {
         setPreviewFile(file);
       } else {
@@ -73,10 +99,10 @@ function AppShell() {
     }
   };
 
-  const handleDownloadFile = async (fileId: string, fileName: string) => {
-    setLoadingFileId(fileId);
+  const handleDownloadFile = async (caf: CustomerApplicationForm, doc: Document) => {
+    setLoadingFileId(doc.id);
     try {
-      const file = await fileStorage.getFile(fileId);
+      const file = await loadAttachment(caf, doc);
       if (file) {
         fileStorage.downloadFile(file);
       } else {
@@ -99,10 +125,19 @@ function AppShell() {
     return <Login onLogin={setUser} />;
   }
 
+  const systemPage = (Object.keys(systemPages) as SystemPage[]).find(page => systemPages[page] === activeTab);
+  const workbench = () => <Dashboard user={user} onNew={navigateToNewCAF} onView={handleViewCAF}
+    onCorrect={handleCorrect}
+    onReview={id => { setReviewId(id); setActiveTab('audit'); }}
+    onApplications={filter => { setApplicationShortcut(filter); setActiveTab('applications'); }} />;
   const renderContent = () => {
+    if (systemPage && hasPermission(user, 'manageUsers')) {
+      return <SystemManagement category={systemPage} onNavigate={page => setActiveTab(systemPages[page])} />;
+    }
     switch (activeTab) {
-      case 'dashboard': return <Dashboard user={user} />;
-      case 'applications': return <CAFList onCorrect={handleCorrect} onNewEntry={navigateToNewCAF} onView={handleViewCAF} user={user} />;
+      case 'dashboard': return workbench();
+      case 'applications': return <CAFList onCorrect={handleCorrect} onNewEntry={navigateToNewCAF} onView={handleViewCAF} user={user}
+        shortcut={applicationShortcut} onClearShortcut={() => setApplicationShortcut(undefined)} />;
       case 'new-caf': return (
         <CAFForm
           initialData={correctionData}
@@ -112,22 +147,22 @@ function AppShell() {
       );
       case 'documents': return <DocumentLibrary user={user} />;
       case 'templates': return (
-        <TemplateManagement onOpenGlobalRules={() => setActiveTab('global-rules')} />
+        <TemplateManagement canPublishPrepaid={hasPermission(user, 'editTemplates')} onOpenGlobalRules={() => setActiveTab('global-rules')} />
       );
       case 'global-rules': return (
         <GlobalRulesPage onBack={() => setActiveTab('templates')} />
       );
-      case 'audit': return <AuditPortal />;
-      case 'system-management': return <SystemManagement />;
+      case 'audit': return <AuditPortal initialReviewId={reviewId} />;
       case 'integrations': return <IntegrationHub />;
       case 'compliance': return <ComplianceRegistry />;
       case 'site-registry': return <SiteRegistry />;
       case 'contracts': return <ContractManager />;
-      default: return <Dashboard user={user} />;
+      default: return workbench();
     }
   };
 
   const getPageTitle = () => {
+    if (systemPage) return t('common.' + systemPages[systemPage]);
     switch (activeTab) {
       case 'dashboard': return t('common.dashboard');
       case 'applications': return t('common.applications');
@@ -136,7 +171,6 @@ function AppShell() {
       case 'templates': return t('common.templates');
       case 'global-rules': return t('common.global_rules');
       case 'audit': return t('common.audit');
-      case 'system-management': return t('common.system_management');
       case 'integrations': return t('common.integrations');
       case 'compliance': return t('common.compliance');
       case 'site-registry': return t('common.site_registry');
@@ -146,6 +180,8 @@ function AppShell() {
   };
 
   const changeTab = (tab: string) => {
+    setApplicationShortcut(undefined);
+    setReviewId(undefined);
     if (tab !== 'new-caf') {
       setCorrectionData(null);
     }
@@ -163,7 +199,7 @@ function AppShell() {
         user={user}
       />
 
-      <main className="flex-1 lg:ml-56 flex flex-col min-h-screen">
+      <main className="min-w-0 flex-1 lg:ml-56 flex flex-col min-h-screen">
         {/* Top Header */}
         <header className="h-12 bg-white border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -197,13 +233,17 @@ function AppShell() {
         {/* Content */}
         <div className="flex-1 p-5 lg:p-7">
           <div className="max-w-7xl mx-auto">
-            {renderContent()}
+            <PageLoadBoundary key={systemPage ? 'system' : activeTab}>
+              <Suspense fallback={<p className="py-6 text-sm text-slate-600" role="status">Loading…</p>}>
+                {renderContent()}
+              </Suspense>
+            </PageLoadBoundary>
           </div>
         </div>
 
         {/* Footer */}
         <footer className="px-6 py-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400 bg-white">
-          <p>© 2026 ATOMA Telecom · Regulatory CAF System v3.0</p>
+          <p>© 2026 AsiaInfo Telecom · Regulatory CAF System v3.0</p>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-gray-600 transition-colors">{t('app_shell.footer_compliance')}</a>
             <a href="#" className="hover:text-gray-600 transition-colors">{t('app_shell.footer_legal')}</a>
@@ -214,8 +254,7 @@ function AppShell() {
 
       {/* View CAF Modal */}
       {viewingCAF && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] shadow-xl overflow-hidden flex flex-col border border-gray-200">
+        <PreviewDrawer label={t('app_shell.caf_details')} onClose={() => setViewingCAF(null)}>
             {/* Modal Header */}
             <div className="px-8 py-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
               <div>
@@ -237,6 +276,11 @@ function AppShell() {
               {/* Customer Information */}
               <div>
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{t('app_shell.customer_info')}</h4>
+                {viewingCAF.templateSnapshot && (
+                  <p className="mb-4 text-sm text-slate-600">
+                    {viewingCAF.templateSnapshot.name} · Version {viewingCAF.templateSnapshot.version}
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-xs font-bold text-slate-400 uppercase">{t('app_shell.full_name')}</p>
@@ -345,7 +389,7 @@ function AppShell() {
                 <div className="pt-6 border-t border-slate-200">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{t('app_shell.documents_section')} ({viewingCAF.documents.length})</h4>
                   <div className="space-y-2">
-                    {viewingCAF.documents.map((doc: any) => (
+                    {viewingCAF.documents.map(doc => (
                       <div key={doc.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all group">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
@@ -368,25 +412,26 @@ function AppShell() {
                           )}>
                             {doc.status}
                           </span>
-                          {doc.fileId && (
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {(doc.fileId || getSeedAttachment(viewingCAF, doc)) && (
+                            <div className="flex items-center gap-1">
                               <button
-                                onClick={() => handlePreviewFile(doc.fileId)}
-                                disabled={loadingFileId === doc.fileId}
+                                onClick={() => handlePreviewFile(viewingCAF, doc)}
+                                disabled={loadingFileId === doc.id}
                                 className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all disabled:opacity-50"
-                                title="Preview file"
+                                title={t('audit_portal.click_to_preview')}
+                                aria-label={t('audit_portal.click_to_preview') + ' · ' + doc.name}
                               >
-                                {loadingFileId === doc.fileId ? (
+                                {loadingFileId === doc.id ? (
                                   <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                                 ) : (
                                   <Eye size={16} />
                                 )}
                               </button>
                               <button
-                                onClick={() => handleDownloadFile(doc.fileId, doc.name)}
-                                disabled={loadingFileId === doc.fileId}
+                                onClick={() => handleDownloadFile(viewingCAF, doc)}
+                                disabled={loadingFileId === doc.id}
                                 className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-50"
-                                title="Download file"
+                                title={t('app_shell.download_file')}
                               >
                                 <Download size={16} />
                               </button>
@@ -417,14 +462,12 @@ function AppShell() {
                 </button>
               )}
             </div>
-          </div>
-        </div>
+        </PreviewDrawer>
       )}
 
       {/* File Preview Modal */}
       {previewFile && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200">
+        <PreviewDrawer label={previewFile.name} onClose={() => setPreviewFile(null)} width="max-w-5xl">
             {/* Preview Header */}
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -445,7 +488,7 @@ function AppShell() {
                 <div>
                   <h3 className="text-sm font-bold text-slate-800">{previewFile.name}</h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {previewFile.type} �?{fileStorage.getFileSize(previewFile.size)} �?{new Date(previewFile.uploadDate).toLocaleDateString()}
+                    {[previewFile.type, previewFile.size ? fileStorage.getFileSize(previewFile.size) : null, new Date(previewFile.uploadDate).toLocaleDateString()].filter(Boolean).join(' · ')}
                   </p>
                 </div>
               </div>
@@ -469,7 +512,9 @@ function AppShell() {
 
             {/* Preview Content */}
             <div className="flex-1 overflow-auto bg-slate-100 p-6">
-              {previewFile.type.startsWith('image/') ? (
+              {previewFile.type === 'text/html' ? (
+                <iframe src={previewFile.data} sandbox="" title={previewFile.name} className="h-full min-h-[600px] w-full rounded-lg border border-slate-200" />
+              ) : previewFile.type.startsWith('image/') ? (
                 <div className="flex items-center justify-center min-h-full">
                   <img 
                     src={previewFile.data} 
@@ -521,11 +566,11 @@ function AppShell() {
                 {t('app_shell.close')}
               </button>
             </div>
-          </div>
-        </div>
+        </PreviewDrawer>
       )}
     </div>
   );
 }
 
 
+import type { ApplicationShortcut } from './components/Dashboard';

@@ -243,7 +243,7 @@ interface DocumentFile {
 
 **示例：**
 ```
-Afghan Tech Solutions Ltd 申请企业宽带
+AsiaInfo Tech Solutions Ltd 申请企业宽带
 → 客户类型显示"企业"
 → 文档分类显示"企业证明"
 → 业务类型显示"Enterprise Broadband"
@@ -422,5 +422,5 @@ const getCategoryName = (category: DocumentCategory) => {
 **优化版本**: v2.1  
 **更新日期**: 2026-05-06  
 **优化内容**: 列表视图信息增强  
-**适用系统**: ATOMA CAF Management System
+**适用系统**: AsiaInfo CAF Management System
 

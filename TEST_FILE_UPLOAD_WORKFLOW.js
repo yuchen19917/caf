@@ -285,7 +285,7 @@ function createTestFile() {
   ctx.fillStyle = 'white';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('ATOMA Telecom', 200, 80);
+  ctx.fillText('AsiaInfo', 200, 80);
   ctx.font = '16px Arial';
   ctx.fillText('Test Document', 200, 120);
   ctx.fillText(new Date().toLocaleString(), 200, 150);

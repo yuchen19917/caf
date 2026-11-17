@@ -8,7 +8,7 @@
       "enforcement": "blocking",
       "technicalRef": "BlacklistService.check(v=3)",
       "version": "3.2",
-      "lastModified": "2026-03-15T09:00:00Z",
+      "lastModified": "2026-10-17T09:00:00Z",
       "isActive": true
     },
     {
@@ -19,7 +19,7 @@
       "enforcement": "blocking",
       "technicalRef": "ageYears >= 18",
       "version": "1.0",
-      "lastModified": "2025-11-01T08:00:00Z",
+      "lastModified": "2026-09-20T08:00:00Z",
       "isActive": true
     },
     {
@@ -30,7 +30,7 @@
       "enforcement": "blocking",
       "technicalRef": "unique_window(id_hash, 24h)",
       "version": "2.4",
-      "lastModified": "2026-04-02T14:20:00Z",
+      "lastModified": "2026-10-23T14:20:00Z",
       "isActive": true
     },
     {
@@ -41,7 +41,7 @@
       "enforcement": "warning",
       "technicalRef": "regex: MSISDN_INTL_v4",
       "version": "4.1",
-      "lastModified": "2026-01-18T11:00:00Z",
+      "lastModified": "2026-09-30T11:00:00Z",
       "isActive": true
     },
     {
@@ -52,7 +52,7 @@
       "enforcement": "blocking",
       "technicalRef": "regex: NAT_ID_AF_v2",
       "version": "2.0",
-      "lastModified": "2025-09-30T16:45:00Z",
+      "lastModified": "2026-09-16T16:45:00Z",
       "isActive": true
     },
     {
@@ -63,7 +63,7 @@
       "enforcement": "blocking",
       "technicalRef": "FaceMatch.minScore=0.82",
       "version": "5.0",
-      "lastModified": "2026-02-10T07:30:00Z",
+      "lastModified": "2026-10-06T07:30:00Z",
       "isActive": true
     },
     {
@@ -74,7 +74,7 @@
       "enforcement": "blocking",
       "technicalRef": "DocIntel.scan(provider=primary)",
       "version": "1.8",
-      "lastModified": "2026-04-28T13:15:00Z",
+      "lastModified": "2026-10-30T13:15:00Z",
       "isActive": true
     },
     {
@@ -85,7 +85,7 @@
       "enforcement": "warning",
       "technicalRef": "cross_check(name,dob)",
       "version": "1.2",
-      "lastModified": "2025-12-05T10:00:00Z",
+      "lastModified": "2026-09-25T10:00:00Z",
       "isActive": true
     },
     {
@@ -96,7 +96,7 @@
       "enforcement": "informational",
       "technicalRef": "audit.store=years:10",
       "version": "2.0",
-      "lastModified": "2026-03-01T08:00:00Z",
+      "lastModified": "2026-10-12T08:00:00Z",
       "isActive": true
     },
     {
@@ -107,7 +107,7 @@
       "enforcement": "informational",
       "technicalRef": "retention_years=7",
       "version": "1.0",
-      "lastModified": "2024-06-20T12:00:00Z",
+      "lastModified": "2026-09-12T12:00:00Z",
       "isActive": true
     },
     {
@@ -118,7 +118,7 @@
       "enforcement": "warning",
       "technicalRef": "semver + feature_flags",
       "version": "1.1",
-      "lastModified": "2026-05-04T09:00:00Z",
+      "lastModified": "2026-11-04T09:00:00Z",
       "isActive": true
     }
   ]

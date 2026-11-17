@@ -19,10 +19,12 @@ type ApplicationContextValue = {
   archiveEntries: ArchivedLibraryFile[];
   loading: boolean;
   addApplicationFromForm: (form: CAFFormShape, user: User) => Promise<CustomerApplicationForm>;
+  submitTemplateApplication: (application: Partial<CustomerApplicationForm>, cafId?: string) => Promise<CustomerApplicationForm>;
   resubmitCorrection: (cafId: string, form: CAFFormShape, user: User) => Promise<CustomerApplicationForm>;
   approveAndArchive: (cafId: string) => Promise<void>;
+  approveCAF: (cafId: string) => Promise<void>;
   rejectCAF: (cafId: string) => Promise<void>;
-  requestCorrection: (cafId: string) => Promise<void>;
+  requestCorrection: (cafId: string, correction?: CustomerApplicationForm['correction']) => Promise<void>;
   deleteCAF: (cafId: string) => Promise<void>;
   getFilteredCAFs: (user: User | null) => CustomerApplicationForm[];
   refresh: () => Promise<void>;
@@ -65,6 +67,16 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
     return created;
   }, [cafs]);
 
+  const submitTemplateApplication = useCallback(async (application: Partial<CustomerApplicationForm>, cafId?: string) => {
+    const saved = cafId
+      ? await cafApi.update(cafId, { ...application, status: 'Pending', submissionDate: new Date().toISOString() })
+      : await cafApi.create({ ...application, status: 'Pending', submissionDate: new Date().toISOString() });
+    setCafs(previous => cafId
+      ? previous.map(item => item.id === cafId ? saved : item)
+      : [saved, ...previous]);
+    return saved;
+  }, []);
+
   const resubmitCorrection = useCallback(async (cafId: string, form: CAFFormShape, user: User): Promise<CustomerApplicationForm> => {
     const prev = cafs.find(c => c.id === cafId);
     if (!prev) {
@@ -79,7 +91,12 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
   const approveAndArchive = useCallback(async (cafId: string): Promise<void> => {
     const result = await cafApi.archive(cafId);
     setCafs(s => s.map(c => c.id === cafId ? result.caf : c));
-    setArchiveEntries(s => [result.entry, ...s]);
+    if (result.entry) setArchiveEntries(s => [result.entry, ...s]);
+  }, []);
+
+  const approveCAF = useCallback(async (cafId: string): Promise<void> => {
+    const updated = await cafApi.approve(cafId);
+    setCafs(previous => previous.map(caf => caf.id === cafId ? updated : caf));
   }, []);
 
   const rejectCAF = useCallback(async (cafId: string): Promise<void> => {
@@ -87,8 +104,8 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
     setCafs(s => s.map(c => c.id === cafId ? updated : c));
   }, []);
 
-  const requestCorrection = useCallback(async (cafId: string): Promise<void> => {
-    const updated = await cafApi.update(cafId, { status: 'Correction' });
+  const requestCorrection = useCallback(async (cafId: string, correction?: CustomerApplicationForm['correction']): Promise<void> => {
+    const updated = await cafApi.update(cafId, { status: 'Correction', correction });
     setCafs(s => s.map(c => c.id === cafId ? updated : c));
   }, []);
 
@@ -104,8 +121,8 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
   }, [cafs]);
 
   const value = useMemo(
-    () => ({ cafs, archiveEntries, loading, addApplicationFromForm, resubmitCorrection, approveAndArchive, rejectCAF, requestCorrection, deleteCAF, getFilteredCAFs, refresh }),
-    [cafs, archiveEntries, loading, addApplicationFromForm, resubmitCorrection, approveAndArchive, rejectCAF, requestCorrection, deleteCAF, getFilteredCAFs, refresh]
+    () => ({ cafs, archiveEntries, loading, addApplicationFromForm, submitTemplateApplication, resubmitCorrection, approveAndArchive, approveCAF, rejectCAF, requestCorrection, deleteCAF, getFilteredCAFs, refresh }),
+    [cafs, archiveEntries, loading, addApplicationFromForm, submitTemplateApplication, resubmitCorrection, approveAndArchive, approveCAF, rejectCAF, requestCorrection, deleteCAF, getFilteredCAFs, refresh]
   );
 
   return <ApplicationContext.Provider value={value}>{children}</ApplicationContext.Provider>;

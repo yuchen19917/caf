@@ -1,3 +1,5 @@
+import { PreviewDrawer } from './PreviewDrawer';
+import { RecordList } from './RecordList';
 import React, { useState, useMemo } from 'react';
 import {
   MapPin, Building2, CheckCircle2, Clock, AlertTriangle,
@@ -36,7 +38,7 @@ interface Site {
 const SITES: Site[] = [
   {
     id: 'ATM-KBL-001', name: 'Kabul Central Tower', province: 'Kabul', city: 'Kabul City', towerType: 'GBT', lifecycle: 'Operations',
-    lat: '34.5260', lng: '69.1761', height: 45, activatedDate: '2020-03-15', leasedFrom: 'Ministry of Communications', leaseExpiry: '2030-03-14',
+    lat: '34.5260', lng: '69.1761', height: 45, activatedDate: '2020-09-15', leasedFrom: 'Ministry of Communications', leaseExpiry: '2030-09-14',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -48,7 +50,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-KBL-002', name: 'Wazir Akbar Khan BTS', province: 'Kabul', city: 'Kabul City', towerType: 'Rooftop', lifecycle: 'Operations',
-    lat: '34.5280', lng: '69.1950', height: 18, activatedDate: '2021-06-10', leasedFrom: 'Private Owner (Hamid Sultani)', leaseExpiry: '2026-06-09',
+    lat: '34.5280', lng: '69.1950', height: 18, activatedDate: '2021-12-10', leasedFrom: 'Private Owner (Hamid Sultani)', leaseExpiry: '2026-12-09',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Building Owner Consent', type: 'Legal', status: 'Present' },
@@ -56,11 +58,11 @@ const SITES: Site[] = [
       { name: 'Acceptance Test Report', type: 'Technical', status: 'Present' },
       { name: 'EMF Certificate', type: 'Regulatory', status: 'Missing' },
     ],
-    notes: 'Lease expiry June 2026 — renewal negotiation in progress.',
+    notes: 'Lease expiry December 2026 — renewal negotiation in progress.',
   },
   {
     id: 'ATM-KBL-003', name: 'Karte Char Node', province: 'Kabul', city: 'Kabul City', towerType: 'Monopole', lifecycle: 'Operations',
-    lat: '34.5120', lng: '69.1614', height: 36, activatedDate: '2022-01-20', leasedFrom: 'Kabul Municipality', leaseExpiry: '2032-01-19',
+    lat: '34.5120', lng: '69.1614', height: 36, activatedDate: '2022-07-20', leasedFrom: 'Kabul Municipality', leaseExpiry: '2032-07-19',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -72,7 +74,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-KBL-004', name: 'Pul-e-Charkhi Micro', province: 'Kabul', city: 'Pul-e-Charkhi', towerType: 'COW', lifecycle: 'Construction',
-    lat: '34.5088', lng: '69.2831', height: 30, activatedDate: null, leasedFrom: 'Private Owner', leaseExpiry: '2035-01-01',
+    lat: '34.5088', lng: '69.2831', height: 30, activatedDate: null, leasedFrom: 'Private Owner', leaseExpiry: '2035-07-01',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Pending' },
@@ -83,7 +85,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-KDR-001', name: 'Kandahar Main Tower', province: 'Kandahar', city: 'Kandahar City', towerType: 'GBT', lifecycle: 'Operations',
-    lat: '31.6130', lng: '65.7100', height: 52, activatedDate: '2019-11-01', leasedFrom: 'Kandahar Province DPW', leaseExpiry: '2029-10-31',
+    lat: '31.6130', lng: '65.7100', height: 52, activatedDate: '2020-05-01', leasedFrom: 'Kandahar Province DPW', leaseExpiry: '2030-04-30',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -94,7 +96,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-KDR-002', name: 'Kandahar Airport BTS', province: 'Kandahar', city: 'Kandahar City', towerType: 'Lattice', lifecycle: 'Operations',
-    lat: '31.5060', lng: '65.8479', height: 60, activatedDate: '2020-07-15', leasedFrom: 'Afghanistan Civil Aviation Authority', leaseExpiry: '2027-07-14',
+    lat: '31.5060', lng: '65.8479', height: 60, activatedDate: '2021-01-15', leasedFrom: 'DMS Civil Aviation Authority', leaseExpiry: '2028-01-14',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'ACAA Permit', type: 'Regulatory', status: 'Present' },
@@ -106,7 +108,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-HRT-001', name: 'Herat City BTS', province: 'Herat', city: 'Herat City', towerType: 'GBT', lifecycle: 'Operations',
-    lat: '34.3520', lng: '62.2042', height: 48, activatedDate: '2020-09-20', leasedFrom: 'Herat Municipality', leaseExpiry: '2030-09-19',
+    lat: '34.3520', lng: '62.2042', height: 48, activatedDate: '2021-03-20', leasedFrom: 'Herat Municipality', leaseExpiry: '2031-03-19',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -117,7 +119,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-HRT-002', name: 'Herat University Area', province: 'Herat', city: 'Herat City', towerType: 'Rooftop', lifecycle: 'Commissioning',
-    lat: '34.3780', lng: '62.1890', height: 20, activatedDate: null, leasedFrom: 'Herat University', leaseExpiry: '2033-01-01',
+    lat: '34.3780', lng: '62.1890', height: 20, activatedDate: null, leasedFrom: 'Herat University', leaseExpiry: '2033-07-01',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'University MOU', type: 'Legal', status: 'Present' },
@@ -128,7 +130,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-MZR-001', name: 'Mazar-i-Sharif Central', province: 'Mazar-i-Sharif', city: 'Mazar-i-Sharif', towerType: 'GBT', lifecycle: 'Operations',
-    lat: '36.7090', lng: '67.1100', height: 45, activatedDate: '2021-04-01', leasedFrom: 'Balkh Province Authority', leaseExpiry: '2031-03-31',
+    lat: '36.7090', lng: '67.1100', height: 45, activatedDate: '2021-10-01', leasedFrom: 'Balkh Province Authority', leaseExpiry: '2031-09-30',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -139,7 +141,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-JLB-001', name: 'Jalalabad City Tower', province: 'Jalalabad', city: 'Jalalabad', towerType: 'Monopole', lifecycle: 'Operations',
-    lat: '34.4415', lng: '70.4380', height: 40, activatedDate: '2021-09-15', leasedFrom: 'Nangarhar Municipality', leaseExpiry: '2031-09-14',
+    lat: '34.4415', lng: '70.4380', height: 40, activatedDate: '2022-03-15', leasedFrom: 'Nangarhar Municipality', leaseExpiry: '2032-03-14',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -150,7 +152,7 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-KND-001', name: 'Kunduz North BTS', province: 'Kunduz', city: 'Kunduz City', towerType: 'GBT', lifecycle: 'Operations',
-    lat: '36.7290', lng: '68.8720', height: 42, activatedDate: '2022-05-01', leasedFrom: 'Kunduz Municipality', leaseExpiry: '2032-04-30',
+    lat: '36.7290', lng: '68.8720', height: 42, activatedDate: '2022-11-01', leasedFrom: 'Kunduz Municipality', leaseExpiry: '2032-10-30',
     docs: [
       { name: 'Site Lease Deed', type: 'Legal', status: 'Present' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Present' },
@@ -161,17 +163,16 @@ const SITES: Site[] = [
   },
   {
     id: 'ATM-BMY-001', name: 'Bamyan Town Relay', province: 'Bamyan', city: 'Bamyan', towerType: 'Lattice', lifecycle: 'Acquisition',
-    lat: '34.8210', lng: '67.8230', height: 55, activatedDate: null, leasedFrom: 'TBD — Site survey ongoing', leaseExpiry: '2036-01-01',
+    lat: '34.8210', lng: '67.8230', height: 55, activatedDate: null, leasedFrom: 'TBD — Site survey ongoing', leaseExpiry: '2036-07-01',
     docs: [
       { name: 'Site Survey Report', type: 'Technical', status: 'Pending' },
       { name: 'Site Lease Deed', type: 'Legal', status: 'Missing' },
       { name: 'Municipal NOC', type: 'Regulatory', status: 'Missing' },
     ],
-    notes: 'Feasibility study completed Q1 2026. Lease negotiation with landowner starting Q2 2026.',
+    notes: 'Feasibility study completed Q3 2026. Lease negotiation with landowner starting Q4 2026.',
   },
 ];
 
-const PROVINCES = ['All', ...Array.from(new Set(SITES.map(s => s.province))).sort()];
 const LIFECYCLE_STAGES: LifecycleStage[] = ['Acquisition', 'Construction', 'Commissioning', 'Operations', 'Decommissioning'];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -202,17 +203,7 @@ const DOC_STATUS_STYLE: Record<string, string> = {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function SiteRegistry() {
-  const [province, setProvince] = useState('All');
-  const [lifecycle, setLifecycle] = useState('All');
-  const [search, setSearch] = useState('');
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
-
-  const filtered = useMemo(() => SITES.filter(s => {
-    if (province !== 'All' && s.province !== province) return false;
-    if (lifecycle !== 'All' && s.lifecycle !== lifecycle) return false;
-    if (search && !`${s.id} ${s.name} ${s.city}`.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  }), [province, lifecycle, search]);
 
   const stats = useMemo(() => ({
     total: SITES.length,
@@ -227,7 +218,7 @@ export function SiteRegistry() {
       <div className="flex items-center justify-between pb-1">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Site Registry</h2>
-          <p className="text-sm text-gray-500 mt-0.5">ATOMA Afghanistan · Tower & BTS Document Repository</p>
+          <p className="text-sm text-gray-500 mt-0.5">AsiaInfo DMS · Tower & BTS Document Repository</p>
         </div>
       </div>
 
@@ -251,49 +242,11 @@ export function SiteRegistry() {
         ))}
       </div>
 
-      {/* Filters + Table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Filter bar */}
-        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50">
-          <div className="relative flex-1 min-w-[180px]">
-            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search site ID, name or city..."
-              className="w-full pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
-            />
-          </div>
-          <select
-            value={province}
-            onChange={e => setProvince(e.target.value)}
-            className="text-xs border border-gray-200 rounded px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            {PROVINCES.map(p => <option key={p}>{p}</option>)}
-          </select>
-          <select
-            value={lifecycle}
-            onChange={e => setLifecycle(e.target.value)}
-            className="text-xs border border-gray-200 rounded px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            <option value="All">All Stages</option>
-            {LIFECYCLE_STAGES.map(s => <option key={s}>{s}</option>)}
-          </select>
-          <span className="text-xs text-gray-400 ml-auto">{filtered.length} sites</span>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                {['Site ID', 'Name', 'Province', 'Type', 'Lifecycle', 'Activated', 'Lease Expiry', 'Docs', ''].map(h => (
-                  <th key={h} className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide px-4 py-2.5 first:pl-4">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map(site => {
+      <RecordList rows={SITES}
+        columns={['Site ID', 'Name', 'Province', 'Type', 'Lifecycle', 'Activated', 'Lease Expiry', 'Docs', '']}
+        search={site => [site.id, site.name, site.city]}
+        filters={[{ label: 'Province', value: site => site.province }, { label: 'Lifecycle', value: site => site.lifecycle }]}
+        renderRow={site => {
                 const lc = LIFECYCLE_CONFIG[site.lifecycle];
                 const missing = site.docs.filter(d => d.status !== 'Present').length;
                 return (
@@ -324,11 +277,8 @@ export function SiteRegistry() {
                     </td>
                   </tr>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              }}
+      />
 
       {/* Site Detail Panel */}
       {selectedSite && <SiteDetailPanel site={selectedSite} onClose={() => setSelectedSite(null)} />}
@@ -342,8 +292,7 @@ function SiteDetailPanel({ site, onClose }: { site: Site; onClose: () => void })
   const lc = LIFECYCLE_CONFIG[site.lifecycle];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/30" onClick={onClose}>
-      <div className="h-full w-full max-w-md bg-white shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
+    <PreviewDrawer label={site.name} onClose={onClose}>
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between shrink-0">
           <div>
@@ -441,7 +390,6 @@ function SiteDetailPanel({ site, onClose }: { site: Site; onClose: () => void })
           <span className={cn('text-[10px] font-bold uppercase px-2.5 py-1 rounded border', lc.color)}>{site.lifecycle}</span>
           <button onClick={onClose} className="px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-600 hover:bg-gray-100 transition-colors">Close</button>
         </div>
-      </div>
-    </div>
+    </PreviewDrawer>
   );
 }

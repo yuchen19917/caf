@@ -34,7 +34,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 - ❌ 页眉页脚信息不完整
 
 ### 2.2 优化后（新版本）
-- ✅ 专业的 ATOMA 品牌页眉设计
+- ✅ 专业的 AsiaInfo 品牌页眉设计
 - ✅ 清晰的分节结构（七大部分）
 - ✅ 统一的表格样式和配色方案
 - ✅ 完整的服务条款和隐私保护说明
@@ -49,7 +49,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 
 ```html
 <div style="text-align: center; border-bottom: 3px solid #1229B3; padding-bottom: 20px; margin-bottom: 30px;">
-  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">ATOMA TELECOM</h1>
+  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">AsiaInfo TELECOM</h1>
   <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">个人预付费业务申请表</p>
   <p style="color: #999; font-size: 10px; margin: 5px 0 0 0;">INDIVIDUAL PREPAID SERVICE APPLICATION FORM</p>
 </div>
@@ -160,7 +160,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
   <h3 style="color: #333; font-size: 14px; margin-top: 0;">6.1 用户权利</h3>
   <ul style="line-height: 1.8; color: #666; font-size: 13px;">
-    <li>享受 ATOMA TELECOM 提供的优质通信服务</li>
+    <li>享受 AsiaInfo TELECOM 提供的优质通信服务</li>
     <li>获得清晰透明的资费说明和账单明细</li>
     <li>享有个人信息保护和隐私安全保障</li>
     <li>获得7×24小时客户服务支持</li>
@@ -169,7 +169,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">6.2 用户义务</h3>
   <ol style="line-height: 1.8; color: #666; font-size: 13px;">
     <li>提供真实、准确、完整的个人信息和证件资料</li>
-    <li>遵守国家法律法规和 ATOMA TELECOM 服务协议</li>
+    <li>遵守国家法律法规和 AsiaInfo TELECOM 服务协议</li>
     <li>不得利用通信服务从事违法违规活动</li>
     <li>按时充值或缴纳服务费用</li>
     <li>妥善保管 SIM 卡和账户信息，防止丢失或被盗用</li>
@@ -185,7 +185,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">6.4 隐私保护</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    ATOMA TELECOM 承诺严格保护用户个人信息，不向第三方泄露或出售用户资料。
+    AsiaInfo TELECOM 承诺严格保护用户个人信息，不向第三方泄露或出售用户资料。
     用户信息仅用于提供通信服务、账单管理和客户支持，法律法规要求或监管机构要求的除外。
   </p>
 </div>
@@ -199,7 +199,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
   <p style="line-height: 1.8; color: #856404; font-size: 13px; margin: 0;">
     <strong>重要声明：</strong>本人 <strong>{{fullName}}</strong>（证件号码：<strong>{{idNumber}}</strong>）
-    已仔细阅读并完全理解上述所有条款，同意接受 ATOMA TELECOM 的服务协议及相关规定。
+    已仔细阅读并完全理解上述所有条款，同意接受 AsiaInfo TELECOM 的服务协议及相关规定。
     本人确认所提供的所有信息真实、准确、完整，并愿意承担因信息不实而产生的一切法律责任。
   </p>
 </div>
@@ -208,7 +208,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
   <p style="color: #666; font-size: 13px; line-height: 1.8;">
     <strong>申请日期</strong>：{{submissionDate}}<br>
     <strong>申请编号</strong>：系统自动生成<br>
-    <strong>受理网点</strong>：ATOMA TELECOM 客户服务中心
+    <strong>受理网点</strong>：AsiaInfo TELECOM 客户服务中心
   </p>
 </div>
 ```
@@ -239,11 +239,11 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 ```html
 <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #1229B3; text-align: center;">
   <p style="color: #999; font-size: 11px; line-height: 1.6;">
-    ATOMA TELECOM 客户服务中心<br>
-    客户服务热线：400-XXX-XXXX | 服务邮箱：service@atoma.com<br>
-    官方网站：www.atoma.com | 微信公众号：ATOMA通信<br>
+    AsiaInfo TELECOM 客户服务中心<br>
+    客户服务热线：400-XXX-XXXX | 服务邮箱：service@asiainfo.com<br>
+    官方网站：www.asiainfo.com | 微信公众号：AsiaInfo通信<br>
     <br>
-    <em style="font-size: 10px;">本申请表一式两份，客户与运营商各执一份。感谢您选择 ATOMA TELECOM！</em>
+    <em style="font-size: 10px;">本申请表一式两份，客户与运营商各执一份。感谢您选择 AsiaInfo TELECOM！</em>
   </p>
 </div>
 ```
@@ -316,7 +316,7 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 ## 六、设计特点
 
 ### 6.1 视觉设计
-- 采用 ATOMA 品牌色（#1229B3）作为主色调
+- 采用 AsiaInfo 品牌色（#1229B3）作为主色调
 - 统一的表格样式和间距
 - 清晰的分节标题（左侧蓝色边框）
 - 专业的页眉和页脚设计
@@ -378,5 +378,5 @@ Description: 个人预付费标准业务申请表，适用于个人客户申请�
 
 **文档版本**: v1.0  
 **创建日期**: 2026-05-06  
-**适用系统**: ATOMA CAF Management System
+**适用系统**: AsiaInfo CAF Management System
 

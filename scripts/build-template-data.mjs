@@ -102,7 +102,7 @@ const INDIVIDUAL_CAF_BLUEPRINT = `
 /** Enterprise broadband CAF — comprehensive template with service terms */
 const ENTERPRISE_CAF_BLUEPRINT = `
 <div style="text-align: center; border-bottom: 3px solid #1229B3; padding-bottom: 20px; margin-bottom: 30px;">
-  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">ATOMA TELECOM</h1>
+  <h1 style="color: #1229B3; font-size: 24px; font-weight: bold; margin: 0;">AsiaInfo TELECOM</h1>
   <p style="color: #666; font-size: 14px; margin: 5px 0 0 0; font-weight: bold;">فورم درخواست خدمات باند پهن شرکتی</p>
   <p style="color: #999; font-size: 12px; margin: 5px 0 0 0;">ENTERPRISE BROADBAND SERVICE APPLICATION FORM</p>
 </div>
@@ -170,19 +170,19 @@ const ENTERPRISE_CAF_BLUEPRINT = `
 <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
   <h3 style="color: #333; font-size: 14px; margin-top: 0;">قرارداد خدمات / Service Agreement</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    I, on behalf of <strong>{{fullName}}</strong>, apply for enterprise broadband services provided by ATOMA TELECOM and commit to:
+    I, on behalf of <strong>{{fullName}}</strong>, apply for enterprise broadband services provided by AsiaInfo TELECOM and commit to:
   </p>
   <ol style="line-height: 1.8; color: #666; font-size: 13px;">
     <li>All provided company information and related documents are authentic and valid. I am willing to bear corresponding legal responsibilities for any false information;</li>
     <li>I have fully understood the tariff standards, service content, and related terms of the applied service;</li>
-    <li>I agree to comply with ATOMA TELECOM's service agreement and related management regulations;</li>
+    <li>I agree to comply with AsiaInfo TELECOM's service agreement and related management regulations;</li>
     <li>I guarantee not to use the applied network service for illegal activities;</li>
     <li>I will pay service fees on time. If overdue, I agree that the operator may take measures such as service suspension.</li>
   </ol>
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">تعهد سطح خدمات (SLA) / Service Level Agreement</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    ATOMA TELECOM commits to providing the following service guarantees for enterprise customers:
+    AsiaInfo TELECOM commits to providing the following service guarantees for enterprise customers:
   </p>
   <ul style="line-height: 1.8; color: #666; font-size: 13px;">
     <li><strong>Network Availability / دسترسی شبکه</strong>: ≥99.5% (Dedicated line ≥99.9%)</li>
@@ -202,12 +202,12 @@ const ENTERPRISE_CAF_BLUEPRINT = `
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">مسئولیت نقض قرارداد / Breach of Contract Liability</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    If the customer violates the service agreement or engages in illegal activities, ATOMA TELECOM has the right to immediately suspend the service and reserves the right to pursue legal liability. Paid fees will not be refunded.
+    If the customer violates the service agreement or engages in illegal activities, AsiaInfo TELECOM has the right to immediately suspend the service and reserves the right to pursue legal liability. Paid fees will not be refunded.
   </p>
 
   <h3 style="color: #333; font-size: 14px; margin-top: 20px;">حفاظت از حریم خصوصی / Privacy Protection</h3>
   <p style="line-height: 1.8; color: #666; font-size: 13px;">
-    ATOMA TELECOM commits to strictly protecting customer information security and will not disclose customer data to third parties, except as required by laws, regulations, or regulatory authorities.
+    AsiaInfo TELECOM commits to strictly protecting customer information security and will not disclose customer data to third parties, except as required by laws, regulations, or regulatory authorities.
   </p>
 </div>
 
@@ -215,7 +215,7 @@ const ENTERPRISE_CAF_BLUEPRINT = `
 
 <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
   <p style="line-height: 1.8; color: #856404; font-size: 13px; margin: 0;">
-    <strong>Important Declaration:</strong> I, as the authorized representative of <strong>{{fullName}}</strong>, have carefully read and fully understand all the above terms, and agree to accept ATOMA TELECOM's service agreement and related regulations. I confirm that all information provided is true, accurate, and complete, and I am willing to bear all legal responsibilities arising from false information.
+    <strong>Important Declaration:</strong> I, as the authorized representative of <strong>{{fullName}}</strong>, have carefully read and fully understand all the above terms, and agree to accept AsiaInfo TELECOM's service agreement and related regulations. I confirm that all information provided is true, accurate, and complete, and I am willing to bear all legal responsibilities arising from false information.
   </p>
 </div>
 
@@ -223,7 +223,7 @@ const ENTERPRISE_CAF_BLUEPRINT = `
   <p style="color: #666; font-size: 13px; line-height: 1.8;">
     <strong>Application Date / تاریخ درخواست</strong>: {{submissionDate}}<br>
     <strong>Application Number / شماره درخواست</strong>: Auto-generated by system<br>
-    <strong>Service Center / مرکز خدمات</strong>: ATOMA TELECOM Enterprise Service Center
+    <strong>Service Center / مرکز خدمات</strong>: AsiaInfo TELECOM Enterprise Service Center
   </p>
 </div>
 
@@ -249,9 +249,9 @@ const ENTERPRISE_CAF_BLUEPRINT = `
 
 <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #1229B3; text-align: center;">
   <p style="color: #999; font-size: 11px; line-height: 1.6;">
-    ATOMA TELECOM Enterprise Service Center<br>
-    Customer Service Hotline: +93 XXX XXX XXX | Enterprise Email: enterprise@atoma.af<br>
-    Address: Kabul, Afghanistan<br>
+    AsiaInfo TELECOM Enterprise Service Center<br>
+    Customer Service Hotline: +93 XXX XXX XXX | Enterprise Email: enterprise@asiainfo.com<br>
+    Address: Kabul, DMS<br>
     <br>
     <em style="font-size: 10px;">This application form is in duplicate, one for the customer and one for the operator.</em>
   </p>
@@ -269,7 +269,7 @@ const templates = [
     channel: 'Direct',
     product: 'Prepaid Standard',
     isActive: true,
-    lastModified: '2024-04-01T08:00:00Z',
+    lastModified: '2026-09-18T08:00:00Z',
     fields: [
       { id: 'f1', label: 'Full Name', type: 'text', required: true },
       { id: 'f2', label: 'ID Type', type: 'text', required: true },
@@ -296,7 +296,7 @@ const templates = [
     channel: 'Direct',
     product: 'Enterprise Fiber / Leased Line',
     isActive: true,
-    lastModified: '2024-04-10T14:30:00Z',
+    lastModified: '2026-09-25T14:30:00Z',
     fields: [
       { id: 'c1', label: 'نام شرکت / Company Name', type: 'text', required: true },
       { id: 'c2', label: 'شماره ثبت / Registration Number', type: 'text', required: true },
@@ -328,15 +328,15 @@ const templates = [
   },
   {
     id: 'TPL-PCCARE-CAF-001',
-    name: 'PC CARE Customer Application Form (CAF)',
+    name: 'AsiaInfo Customer Application Form (CAF)',
     description:
-      'Airway broadband CAF (SME/ISP/OSP/Corporate/Lease Line) with grid-style fields, service/financial blocks, document checklist, and customer acceptance — logo from image/logo.svg.',
+      'AsiaInfo broadband CAF (SME/ISP/OSP/Corporate/Lease Line) with grid-style fields, service/financial blocks, document checklist, and customer acceptance — logo from image/logo.svg.',
     customerType: 'Corporate',
     businessType: 'Broadband / Lease Line',
     channel: 'Direct',
     product: 'Fixed Wi-Fi / FTTX / DIA-ILL',
     isActive: true,
-    lastModified: '2026-05-01T10:00:00Z',
+    lastModified: '2026-11-01T10:00:00Z',
     isFullPageTerms: true,
     fields: [
       { id: 'pc1', label: 'Subscriber Name', type: 'text', required: true },

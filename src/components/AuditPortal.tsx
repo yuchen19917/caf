@@ -1,28 +1,14 @@
+import { loadAttachment } from '../lib/attachmentFile';
+import { PreviewDrawer } from './PreviewDrawer';
+import { RecordList } from './RecordList';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import {
-  ShieldCheck,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  UserCheck,
-  History,
-  FileText,
-  Database,
-  Archive,
-  RefreshCcw,
-  Server,
-  X,
-  Download,
-  Image as ImageIcon,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, XCircle, Eye, UserCheck, FileText, Download, ImageIcon, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { CustomerApplicationForm } from '../types';
 import { useApplications } from '../context/ApplicationContext';
 import { fileStorage, type UploadedFile } from '../lib/fileStorage';
-import { motion } from 'motion/react';
 
 function translateCafStatus(status: string, t: TFunction) {
   switch (status) {
@@ -54,38 +40,36 @@ function customerTypeLabel(ct: string, t: TFunction) {
   return ct;
 }
 
-function queueMetaLine(caf: CustomerApplicationForm, t: TFunction) {
-  return `${customerTypeLabel(caf.customerType, t)} · ${translateServiceType(caf.serviceType, t)}`;
-}
-
-export default function AuditPortal() {
+export default function AuditPortal({ initialReviewId }: { initialReviewId?: string }) {
   const { t } = useTranslation();
-  const { cafs, approveAndArchive, rejectCAF, requestCorrection } = useApplications();
+  const { cafs, approveCAF, approveAndArchive, rejectCAF, requestCorrection } = useApplications();
   const queue = useMemo(
-    () => cafs.filter((c) => c.status === 'Pending' || c.status === 'Rejected'),
+    () => cafs.filter((c) => c.status === 'Pending' || c.status === 'Approved' || c.status === 'Rejected'),
     [cafs]
   );
-  const [selectedAudit, setSelectedAudit] = useState<CustomerApplicationForm | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStep, setSyncStep] = useState(0);
-  const [isArchived, setIsArchived] = useState(false);
-  const [actionFeedback, setActionFeedback] = useState<{ type: 'rejected' | 'correction'; cafId: string } | null>(null);
-  /** Snapshot of the CAF just approved (queue selection moves on before this screen dismisses). */
-  const [archivedCaf, setArchivedCaf] = useState<CustomerApplicationForm | null>(null);
+  const [selectedAudit, setSelectedAudit] = useState<CustomerApplicationForm | null>(() =>
+    queue.find(caf => caf.id === initialReviewId) ?? null);
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'approved' | 'archived' | 'rejected' | 'correction'; cafId: string } | null>(null);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
-  const [loadingFileId, setLoadingFileId] = useState<string | null>(null);
   const [documentFiles, setDocumentFiles] = useState<Map<string, UploadedFile>>(new Map());
+  const [reviewError, setReviewError] = useState('');
+  const [reviewing, setReviewing] = useState(false);
+  const [correctionCode, setCorrectionCode] = useState('');
+  const [correctionReason, setCorrectionReason] = useState('');
 
-  useEffect(() => {
-    if (queue.length === 0) {
-      setSelectedAudit(null);
-      return;
-    }
-    setSelectedAudit((cur) => {
-      if (cur && queue.some((c) => c.id === cur.id)) return cur;
-      return queue[0];
-    });
-  }, [queue]);
+  function openReview(caf: CustomerApplicationForm) {
+    setActionFeedback(null);
+    setDocumentFiles(new Map());
+    setReviewError('');
+    setCorrectionCode('');
+    setCorrectionReason('');
+    setSelectedAudit(caf);
+  }
+
+  function closeReview() {
+    setPreviewFile(null);
+    setSelectedAudit(null);
+  }
 
   // Load files for selected audit
   useEffect(() => {
@@ -94,293 +78,111 @@ export default function AuditPortal() {
       return;
     }
 
+    let cancelled = false;
     const loadFiles = async () => {
       const filesMap = new Map<string, UploadedFile>();
       
       for (const doc of selectedAudit.documents) {
-        if (doc.fileId) {
-          try {
-            const file = await fileStorage.getFile(doc.fileId);
-            if (file) {
-              filesMap.set(doc.id, file);
-            }
-          } catch (error) {
-            console.error(`Error loading file ${doc.fileId}:`, error);
-          }
+        try {
+          const file = await loadAttachment(selectedAudit, doc);
+          if (file) filesMap.set(doc.id, file);
+        } catch (error) {
+          console.error(`Error loading attachment ${doc.id}:`, error);
         }
       }
       
-      setDocumentFiles(filesMap);
+      if (!cancelled) setDocumentFiles(filesMap);
     };
 
     loadFiles();
+    return () => { cancelled = true; };
   }, [selectedAudit]);
 
-  const handleApprove = () => {
-    if (!selectedAudit) return;
-    const targetId = selectedAudit.id;
-    const snapshot = selectedAudit;
-    setIsSyncing(true);
-    setSyncStep(1);
-
-    setTimeout(() => setSyncStep(2), 1500);
-    setTimeout(() => setSyncStep(3), 3000);
-    setTimeout(() => {
-      setIsSyncing(false);
-      approveAndArchive(targetId);
-      setArchivedCaf(snapshot);
-      setIsArchived(true);
-    }, 5000);
-  };
-
-  const handleReject = async () => {
-    if (!selectedAudit) return;
-    const targetId = selectedAudit.id;
-    await rejectCAF(targetId);
-    setActionFeedback({ type: 'rejected', cafId: targetId });
-    setTimeout(() => setActionFeedback(null), 3000);
-  };
-
-  const handleRequestCorrection = async () => {
-    if (!selectedAudit) return;
-    const targetId = selectedAudit.id;
-    await requestCorrection(targetId);
-    setActionFeedback({ type: 'correction', cafId: targetId });
-    setTimeout(() => setActionFeedback(null), 3000);
-  };
-
-  const getSyncTask = () => {
-    switch (syncStep) {
-      case 1:
-        return t('audit_portal.sync_step_1');
-      case 2:
-        return t('audit_portal.sync_step_2');
-      case 3:
-        return t('audit_portal.sync_step_3');
-      default:
-        return '';
-    }
-  };
-
-  const handlePreviewFile = async (fileId: string) => {
-    setLoadingFileId(fileId);
+  async function submitReview(type: 'approved' | 'archived' | 'rejected' | 'correction') {
+    if (!selectedAudit || reviewing) return;
+    const cafId = selectedAudit.id;
+    setReviewError('');
+    setReviewing(true);
     try {
-      const file = await fileStorage.getFile(fileId);
-      if (file) {
-        setPreviewFile(file);
+      if (type === 'approved') {
+        await approveCAF(cafId);
+      } else if (type === 'archived') {
+        await approveAndArchive(cafId);
+      } else if (type === 'rejected') {
+        await rejectCAF(cafId);
       } else {
-        alert('File not found in storage');
+        await requestCorrection(cafId, selectedAudit.templateSnapshot
+          ? { requirementCode: correctionCode, reason: correctionReason }
+          : undefined);
       }
+      closeReview();
+      setActionFeedback({ type, cafId });
     } catch (error) {
-      console.error('Error loading file:', error);
-      alert('Failed to load file');
+      setReviewError(error instanceof Error ? error.message : 'Unable to update the application.');
     } finally {
-      setLoadingFileId(null);
+      setReviewing(false);
     }
-  };
-
-  if (isSyncing) {
-    return (
-      <div className="max-w-4xl mx-auto h-full flex items-center justify-center">
-        <div className="bg-white p-12 rounded-[3rem] border border-slate-200 shadow-2xl w-full max-w-xl text-center space-y-10 animate-in zoom-in-95 duration-500">
-          <div className="relative w-32 h-32 mx-auto">
-            <div className="absolute inset-0 border-8 border-slate-100 rounded-full"></div>
-            <div className="absolute inset-0 border-8 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center text-indigo-600">
-              <RefreshCcw size={48} className="animate-pulse" />
-            </div>
-            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl shadow-lg animate-bounce">
-              <Database size={20} />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight italic">{t('audit_portal.sync_title')}</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{getSyncTask()}</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={cn(
-                  'h-1.5 rounded-full transition-all duration-700',
-                  syncStep >= i ? 'bg-indigo-600' : 'bg-slate-100'
-                )}
-              />
-            ))}
-          </div>
-
-          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-left">
-            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-              {t('audit_portal.transmission_log')}
-            </h4>
-            <div className="space-y-2 font-mono text-[9px] text-slate-500">
-              <p className="flex justify-between gap-2">
-                <span>{t('audit_portal.log_system')}</span>{' '}
-                <span className="text-emerald-600 shrink-0">{t('audit_portal.log_identity_verified')}</span>
-              </p>
-              <p className="flex justify-between gap-2">
-                <span>{t('audit_portal.log_crm')}</span>{' '}
-                {syncStep >= 2 ? (
-                  <span className="text-emerald-600 shrink-0">{t('audit_portal.log_uuid_linked')}</span>
-                ) : (
-                  <span className="animate-pulse shrink-0">{t('audit_portal.log_awaiting_payload')}</span>
-                )}
-              </p>
-              <p className="flex justify-between gap-2">
-                <span>{t('audit_portal.log_bss')}</span>{' '}
-                {syncStep >= 3 ? (
-                  <span className="text-emerald-600 shrink-0">{t('audit_portal.log_tariff_configured')}</span>
-                ) : (
-                  <span className="animate-pulse shrink-0">{t('audit_portal.log_waiting_crm')}</span>
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isArchived) {
-    return (
-      <div className="max-w-4xl mx-auto h-full flex items-center justify-center">
-        <div className="bg-white p-12 rounded-[3rem] border border-slate-200 shadow-2xl w-full max-w-xl text-center space-y-8 animate-in fade-in duration-700">
-          <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-emerald-100 rotate-6">
-            <Archive size={48} />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-3xl font-bold text-slate-800">{t('audit_portal.archived_title')}</h3>
-            <p className="text-slate-500 font-medium">{t('audit_portal.archived_subtitle')}</p>
-          </div>
-
-          <div className="p-8 bg-slate-950 rounded-3xl text-left border border-white/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Server size={64} className="text-white" />
-            </div>
-            <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mb-6">
-              {t('audit_portal.activation_result')}
-            </p>
-            <div className="space-y-4">
-              <div className="flex justify-between text-white gap-4">
-                <span className="text-[10px] font-bold uppercase opacity-50 shrink-0">{t('audit_portal.account_id')}</span>
-                <span className="text-xs font-mono text-right break-all">
-                  {archivedCaf ? `BSS-${archivedCaf.id.replace(/-/g, '')}` : '—'}
-                </span>
-              </div>
-              <div className="flex justify-between text-white gap-4">
-                <span className="text-[10px] font-bold uppercase opacity-50 shrink-0">{t('audit_portal.activation_status')}</span>
-                <span className="text-xs font-bold text-emerald-400">{t('audit_portal.activation_success')}</span>
-              </div>
-              <div className="flex justify-between text-white border-t border-white/10 pt-4">
-                <p className="text-[9px] opacity-70 italic leading-relaxed">{t('audit_portal.activation_detail')}</p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsArchived(false);
-              setSyncStep(0);
-              setArchivedCaf(null);
-            }}
-            className="w-full py-4 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-900/10 transition-all active:scale-95"
-          >
-            {t('audit_portal.review_next')}
-          </button>
-        </div>
-      </div>
-    );
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-10 h-full">
-      <div className="xl:col-span-1 space-y-8 flex flex-col">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">{t('audit_portal.queue_title')}</h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">{t('audit_portal.queue_subtitle')}</p>
-        </div>
+    <div className="min-w-0 space-y-5">
+      <h2 className="text-3xl font-bold text-slate-800">{t('audit_portal.queue_title')}</h2>
+      <RecordList<CustomerApplicationForm> rows={queue}
+        columns={[t('document_library.caf_number'), t('caf_list.col_customer'), t('caf_list.col_type'),
+          t('record_list.service'), t('caf_list.col_status'), t('templates_page.table_actions')]}
+        search={caf => [caf.id, caf.fullName, caf.serviceType]}
+        filters={[{ label: t('caf_list.col_status'), value: caf => caf.status, display: value => translateCafStatus(value, t) }]}
+        renderRow={caf => (
+          <tr key={caf.id} className={selectedAudit?.id === caf.id ? 'bg-indigo-50' : 'hover:bg-slate-50'}>
+            <td>{caf.id}</td>
+            <td>{caf.fullName}</td>
+            <td>{caf.customerType}</td>
+            <td>{caf.serviceType}</td>
+            <td>{translateCafStatus(caf.status, t)}</td>
+            <td><button type="button" onClick={() => openReview(caf)}
+              aria-label={t('document_library.view_details') + ' ' + caf.id}
+              className="rounded-lg p-2 text-indigo-600 hover:bg-indigo-100"><Eye size={16} /></button></td>
+          </tr>
+        )}
+      />
 
-        <div className="space-y-4 flex-1 overflow-y-auto">
-          {queue.length === 0 && (
-            <p className="text-sm text-slate-400 font-medium px-1">{t('audit_portal.queue_empty')}</p>
-          )}
-          {queue.map((caf) => (
-            <button
-              key={caf.id}
-              type="button"
-              onClick={() => setSelectedAudit(caf)}
-              className={cn(
-                'w-full text-left p-6 rounded-2xl border-2 transition-all duration-300',
-                selectedAudit?.id === caf.id
-                  ? 'border-indigo-600 bg-indigo-50/30 shadow-xl shadow-indigo-900/5 ring-4 ring-indigo-500/5'
-                  : 'border-slate-100 bg-white hover:border-slate-200'
-              )}
-            >
-              <div className="flex justify-between items-center mb-4 gap-2">
-                <span className="text-[9px] font-bold uppercase bg-slate-800 text-white px-2 py-0.5 rounded tracking-widest font-mono shrink-0">
-                  {caf.id}
-                </span>
-                <span
-                  className={cn(
-                    'text-[9px] font-bold uppercase tracking-wider shrink-0',
-                    caf.status === 'Pending' ? 'text-amber-600' : 'text-rose-600'
-                  )}
-                >
-                  {translateCafStatus(caf.status, t)}
-                </span>
-              </div>
-              <h4
-                className={cn(
-                  'font-bold text-sm transition-colors',
-                  selectedAudit?.id === caf.id ? 'text-indigo-900' : 'text-slate-800'
-                )}
-              >
-                {caf.fullName}
-              </h4>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">
-                {queueMetaLine(caf, t)}
-              </p>
-            </button>
-          ))}
-        </div>
-      </div>
+      {actionFeedback && (
+        <p role="status" className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium">
+          {actionFeedback.cafId} · {actionFeedback.type === 'archived' ? 'Archived' : t('audit_portal.result_' + actionFeedback.type)}
+        </p>
+      )}
 
-      <div className="xl:col-span-2 space-y-8">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden flex flex-col h-full">
-          <div className="px-8 py-6 bg-slate-900 text-white flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-6 min-w-0">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-950/20 shrink-0">
-                <ShieldCheck size={24} />
-              </div>
+      {selectedAudit && (
+        <PreviewDrawer label={selectedAudit.fullName} onClose={closeReview} busy={reviewing}>
+            <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
               <div className="min-w-0">
-                <h3 className="text-xl font-bold tracking-tight">{t('audit_portal.inspector_title')}</h3>
-                <p className="text-[10px] text-indigo-300 uppercase font-bold tracking-widest mt-0.5">
-                  {t('audit_portal.inspector_mode')}
-                </p>
+                <h3 id="audit-drawer-title" className="break-words text-lg font-semibold text-slate-900">{selectedAudit.fullName}</h3>
+                <p className="mt-1 text-sm text-slate-500">{selectedAudit.id} · {translateCafStatus(selectedAudit.status, t)}</p>
               </div>
-            </div>
-            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-white/10 rounded-xl shrink-0">
-              <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest whitespace-nowrap">
-                {t('audit_portal.audit_score')}
-              </span>
-              <span className="text-sm font-bold">98.2%</span>
-            </div>
-          </div>
+              <button type="button" onClick={closeReview} disabled={reviewing}
+                aria-label={t('document_library.close')} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 disabled:opacity-50">
+                <X size={20} />
+              </button>
+            </header>
 
-          <div className="p-8 lg:p-12 space-y-12">
-            {!selectedAudit ? (
-              <div className="flex items-center justify-center min-h-[280px] text-slate-400 text-sm font-medium text-center px-6">
-                {t('audit_portal.inspector_empty')}
-              </div>
-            ) : (
-              <>
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
             <section className="space-y-6">
               <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <UserCheck size={14} className="text-indigo-600 shrink-0" /> {t('audit_portal.section_identity')}
               </h4>
+              {selectedAudit.templateSnapshot ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <p className="md:col-span-2 text-sm text-slate-600">
+                    {selectedAudit.templateSnapshot.name} · Version {selectedAudit.templateSnapshot.version}
+                  </p>
+                  {selectedAudit.templateSnapshot.fields.map(field => (
+                    <div key={field.key} className="rounded-2xl bg-slate-50 p-5">
+                      <p className="text-xs font-bold text-slate-500">{field.label}</p>
+                      <p className="break-words font-semibold">{selectedAudit[field.key] || '—'}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
@@ -391,9 +193,11 @@ export default function AuditPortal() {
                 <div className="p-5 bg-indigo-50 rounded-2xl border border-indigo-200 relative overflow-hidden group">
                   <div className="relative z-10">
                     <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-2">
-                      {t('audit_portal.biometric_verification')}
+                      {selectedAudit.blueprintSnapshot ? 'Identity evidence' : t('audit_portal.biometric_verification')}
                     </p>
-                    <p className="text-base font-bold text-indigo-900">{t('audit_portal.biometric_authenticated')}</p>
+                    <p className="text-base font-bold text-indigo-900">{selectedAudit.blueprintSnapshot
+                      ? `${selectedAudit.idType || 'ID'} · ${selectedAudit.idNumber || '—'}`
+                      : t('audit_portal.biometric_authenticated')}</p>
                   </div>
                   <CheckCircle2
                     size={48}
@@ -401,6 +205,7 @@ export default function AuditPortal() {
                   />
                 </div>
               </div>
+              )}
             </section>
 
             <section className="space-y-6">
@@ -417,8 +222,8 @@ export default function AuditPortal() {
                     <button
                       key={doc.id}
                       type="button"
-                      onClick={() => file && handlePreviewFile(file.id)}
-                      disabled={!file || loadingFileId === file?.id}
+                      onClick={() => file && setPreviewFile(file)}
+                      disabled={!file || reviewing}
                       className="group relative aspect-[4/3] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 cursor-pointer hover:border-indigo-300 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                     >
                       {/* File Preview/Thumbnail */}
@@ -445,25 +250,14 @@ export default function AuditPortal() {
                       {/* Hover Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="absolute inset-0 flex items-center justify-center">
-                          {loadingFileId === file?.id ? (
-                            <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : file ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <Eye size={24} className="text-white drop-shadow-lg" />
-                              <span className="text-[9px] font-bold text-white uppercase tracking-wider">
-                                {t('audit_portal.click_to_preview')}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-[9px] font-bold text-white uppercase tracking-wider">
-                              {t('audit_portal.no_file')}
-                            </span>
-                          )}
+                          <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+                            {t(file ? 'audit_portal.click_to_preview' : 'audit_portal.no_file')}
+                          </span>
                         </div>
                       </div>
 
                       {/* File Info Bar */}
-                      <div className="absolute inset-x-0 bottom-0 bg-white/95 translate-y-full group-hover:translate-y-0 transition-transform p-3 border-t border-slate-200 backdrop-blur-sm z-10">
+                      <div className="absolute inset-x-0 bottom-0 z-10 border-t border-slate-200 bg-white/95 p-3 text-start">
                         <p className="text-[9px] font-bold text-slate-900 uppercase truncate">{doc.name}</p>
                         {file && (
                           <p className="text-[8px] text-slate-500 mt-0.5">
@@ -500,68 +294,51 @@ export default function AuditPortal() {
               </div>
             </section>
 
-            {actionFeedback && (
-              <div className={cn(
-                'px-6 py-4 rounded-2xl border text-xs font-bold uppercase tracking-widest flex items-center gap-3 animate-in fade-in duration-300',
-                actionFeedback.type === 'rejected'
-                  ? 'bg-rose-50 border-rose-200 text-rose-700'
-                  : 'bg-amber-50 border-amber-200 text-amber-700'
-              )}>
-                {actionFeedback.type === 'rejected'
-                  ? <><XCircle size={16} className="shrink-0" /> {actionFeedback.cafId} marked as Rejected</>
-                  : <><AlertTriangle size={16} className="shrink-0" /> {actionFeedback.cafId} — Correction requested, returned to agent</>
-                }
+            {selectedAudit.templateSnapshot && selectedAudit.status === 'Pending' && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-sm">Attachment to replace
+                  <select className="mt-1 block w-full rounded border p-2" value={correctionCode}
+                    onChange={event => setCorrectionCode(event.target.value)}>
+                    <option value="">Select an attachment</option>
+                    {selectedAudit.documents.map(doc => <option key={doc.id} value={doc.requirementCode}>{doc.type}</option>)}
+                  </select>
+                </label>
+                <label className="text-sm">Correction reason
+                  <input className="mt-1 block w-full rounded border p-2" maxLength={500} value={correctionReason}
+                    onChange={event => setCorrectionReason(event.target.value)} />
+                </label>
               </div>
             )}
-
-            <div className="pt-10 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {reviewError && <p role="alert" className="text-sm text-rose-700">{reviewError}</p>}
+            </div>
+            <footer className="grid shrink-0 grid-cols-1 gap-2 border-t border-slate-200 bg-white px-5 py-4 min-[420px]:grid-cols-3 sm:px-6">
               <button
                 type="button"
-                onClick={handleApprove}
+                onClick={() => submitReview(selectedAudit.status === 'Approved' ? 'archived' : 'approved')}
+                disabled={reviewing || !['Pending', 'Approved'].includes(selectedAudit.status)}
                 className="flex items-center justify-center gap-3 py-4 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 active:scale-95"
               >
-                <CheckCircle2 size={16} className="shrink-0" /> {t('audit_portal.approve')}
+                <CheckCircle2 size={16} className="shrink-0" /> {selectedAudit.status === 'Approved' ? 'Archive' : t('audit_portal.approve')}
               </button>
               <button
                 type="button"
-                onClick={handleRequestCorrection}
+                onClick={() => submitReview('correction')}
+                disabled={reviewing || selectedAudit.status !== 'Pending' || (!!selectedAudit.templateSnapshot && (!correctionCode || !correctionReason.trim()))}
                 className="flex items-center justify-center gap-3 py-4 bg-white border border-amber-200 text-amber-600 text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-amber-50 transition-all active:scale-95"
               >
                 <AlertTriangle size={16} className="shrink-0" /> {t('audit_portal.correct')}
               </button>
               <button
                 type="button"
-                onClick={handleReject}
+                onClick={() => submitReview('rejected')}
+                disabled={reviewing || selectedAudit.status !== 'Pending'}
                 className="flex items-center justify-center gap-3 py-4 bg-white border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-rose-50 transition-all active:scale-95"
               >
                 <XCircle size={16} className="shrink-0" /> {t('audit_portal.reject')}
               </button>
-              <button
-                type="button"
-                className="flex items-center justify-center gap-3 py-4 bg-slate-50 border border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all active:scale-95"
-              >
-                <History size={16} className="shrink-0" /> {t('audit_portal.history')}
-              </button>
-            </div>
-
-            <p className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-loose">
-              {t('audit_portal.security_notice_line1')} <br />
-              {t('audit_portal.security_notice_line2', { license: 'AF-KBL-001A' })}
-            </p>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* File Preview Modal */}
-      {previewFile && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden"
-          >
+            </footer>
+          {previewFile && (
+            <PreviewDrawer label={previewFile.name} onClose={() => setPreviewFile(null)} width="max-w-5xl">
             {/* Preview Header */}
             <div className="px-6 py-4 bg-slate-900 text-white border-b border-slate-700 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -599,7 +376,9 @@ export default function AuditPortal() {
 
             {/* Preview Content */}
             <div className="flex-1 overflow-auto bg-slate-950 p-6">
-              {previewFile.type.startsWith('image/') ? (
+              {previewFile.type === 'text/html' ? (
+                <iframe src={previewFile.data} sandbox="" title={previewFile.name} className="h-full min-h-[600px] w-full rounded-lg border border-slate-200" />
+              ) : previewFile.type.startsWith('image/') ? (
                 <div className="flex items-center justify-center min-h-full">
                   <img 
                     src={previewFile.data} 
@@ -653,8 +432,9 @@ export default function AuditPortal() {
                 Close
               </button>
             </div>
-          </motion.div>
-        </div>
+            </PreviewDrawer>
+          )}
+        </PreviewDrawer>
       )}
     </div>
   );

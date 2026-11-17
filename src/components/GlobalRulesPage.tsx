@@ -1,8 +1,9 @@
+import { RecordList } from './RecordList';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Globe, Scale, Database, Shield, Archive } from 'lucide-react';
+import { ArrowLeft, Globe } from 'lucide-react';
 import { cn } from '../lib/utils';
-import type { GlobalRuleCategory, GlobalRuleEnforcement } from '../types';
+import type { GlobalRule, GlobalRuleCategory, GlobalRuleEnforcement } from '../types';
 import { GLOBAL_RULES } from '../lib/globalRulesData';
 
 const GLOBAL_RULE_CATEGORY_ORDER: GlobalRuleCategory[] = [
@@ -11,20 +12,6 @@ const GLOBAL_RULE_CATEGORY_ORDER: GlobalRuleCategory[] = [
   'kyc_security',
   'audit_lifecycle',
 ];
-
-function categoryIcon(cat: GlobalRuleCategory) {
-  const cls = 'text-slate-500 shrink-0';
-  switch (cat) {
-    case 'business_compliance':
-      return <Scale size={16} className={cls} />;
-    case 'data_integrity':
-      return <Database size={16} className={cls} />;
-    case 'kyc_security':
-      return <Shield size={16} className={cls} />;
-    default:
-      return <Archive size={16} className={cls} />;
-  }
-}
 
 function enforcementClass(e: GlobalRuleEnforcement) {
   return e === 'blocking'
@@ -76,64 +63,31 @@ export function GlobalRulesPage({ onBack }: GlobalRulesPageProps) {
             </div>
           </div>
         </div>
-        <div className="p-6 md:p-8">
-          <div className="space-y-1">
-            {sortedGlobalRules.map((rule, idx) => {
-              const showCatHeader =
-                idx === 0 || sortedGlobalRules[idx - 1].category !== rule.category;
-              const catLabelKey = `templates_page.global_rule_cat_${rule.category}` as const;
-              return (
-                <React.Fragment key={rule.id}>
-                  {showCatHeader && (
-                    <div className="flex items-center gap-2 pt-6 first:pt-0 pb-3">
-                      {categoryIcon(rule.category)}
-                      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{t(catLabelKey)}</h4>
-                    </div>
-                  )}
-                  <div
-                    className={cn(
-                      'rounded-2xl border p-4 md:p-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-3 last:mb-0',
-                      rule.isActive
-                        ? 'border-slate-200 bg-white hover:bg-slate-50/60'
-                        : 'border-slate-100 bg-slate-50 opacity-75'
-                    )}
-                  >
-                    <div className="space-y-2 min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold text-slate-400">{rule.id}</span>
-                        <span
-                          className={cn(
-                            'text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border',
-                            enforcementClass(rule.enforcement)
-                          )}
-                        >
-                          {t(`templates_page.enforcement_${rule.enforcement}`)}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold text-slate-800">{rule.name}</p>
-                      <p className="text-xs text-slate-600 leading-relaxed">{rule.summary}</p>
-                      {rule.technicalRef && (
-                        <p className="text-[10px] text-slate-500 font-mono pt-1">
-                          <span className="font-bold text-slate-400 uppercase mr-2">{t('templates_page.rule_technical_ref')}:</span>
-                          {rule.technicalRef}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-start lg:items-end gap-1 shrink-0 text-[10px] font-bold text-slate-400 uppercase tracking-wide lg:text-right">
-                      <span>{t('templates_page.rule_version_label', { version: rule.version })}</span>
-                      <span className="font-normal normal-case text-slate-500">
-                        {new Date(rule.lastModified).toLocaleDateString(
-                          i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US'
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
       </section>
+      <RecordList<GlobalRule> rows={sortedGlobalRules}
+        columns={[t('templates_page.table_code'), t('templates_page.table_name'), t('record_list.category'),
+          t('record_list.enforcement'), t('templates_page.field_description'), t('templates_page.rule_technical_ref'),
+          t('record_list.version'), t('record_list.modified'), t('templates_page.table_status')]}
+        search={rule => [rule.id, rule.name, rule.summary, rule.technicalRef]}
+        filters={[
+          { label: t('record_list.category'), value: rule => rule.category, display: value => t('templates_page.global_rule_cat_' + value) },
+          { label: t('record_list.enforcement'), value: rule => rule.enforcement, display: value => t('templates_page.enforcement_' + value) },
+        ]}
+        renderRow={rule => (
+          <tr key={rule.id} className="hover:bg-slate-50">
+            <td>{rule.id}</td><td className="font-semibold">{rule.name}</td>
+            <td>{t('templates_page.global_rule_cat_' + rule.category)}</td>
+            <td><span className={cn('rounded border px-2 py-0.5 text-xs', enforcementClass(rule.enforcement))}>
+              {t('templates_page.enforcement_' + rule.enforcement)}
+            </span></td>
+            <td><span className="block max-w-xs truncate" title={rule.summary}>{rule.summary}</span></td>
+            <td>{rule.technicalRef || '—'}</td>
+            <td>{rule.version}</td>
+            <td>{new Date(rule.lastModified).toLocaleDateString(i18n.language)}</td>
+            <td>{t(rule.isActive ? 'templates_page.status_active' : 'templates_page.status_draft')}</td>
+          </tr>
+        )}
+      />
     </div>
   );
 }

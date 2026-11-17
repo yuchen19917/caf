@@ -74,9 +74,9 @@ export function Login({ onLogin }: LoginProps) {
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-5/12 bg-slate-900 flex-col justify-between p-10">
         <div>
-          <img src="/logo.svg" alt="ATOMA" className="h-24 w-auto mb-10 opacity-90" />
+          <img src="/logo.svg" alt="AsiaInfo" className="h-24 w-auto mb-10 opacity-90" />
           <h1 className="text-3xl font-bold text-white leading-tight">
-            ATOMA Afghanistan
+            AsiaInfo DMS
           </h1>
           <p className="text-slate-400 text-sm mt-2 leading-relaxed">
             Customer Application Form Management System
@@ -95,7 +95,7 @@ export function Login({ onLogin }: LoginProps) {
           </div>
         </div>
         <p className="text-slate-600 text-xs">
-          © 2026 ATOMA Telecom · Regulatory Grade System · v3.0
+          © 2026 AsiaInfo Telecom · Regulatory Grade System · v3.0
         </p>
       </div>
 
@@ -103,8 +103,8 @@ export function Login({ onLogin }: LoginProps) {
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 px-6">
         {/* Mobile logo */}
         <div className="lg:hidden mb-8 text-center">
-          <img src="/logo.svg" alt="ATOMA" className="h-18 w-auto mx-auto mb-2" />
-          <p className="text-sm font-semibold text-gray-700">ATOMA CAF System</p>
+          <img src="/logo.svg" alt="AsiaInfo" className="h-18 w-auto mx-auto mb-2" />
+          <p className="text-sm font-semibold text-gray-700">AsiaInfo CAF System</p>
         </div>
 
         <div className="w-full max-w-sm">
