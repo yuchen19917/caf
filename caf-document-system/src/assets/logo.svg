@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 626 626" width="626" height="626">
+  <title>AsiaInfo</title>
+  <defs>
+    <linearGradient id="ai-orange" x1="60" y1="460" x2="420" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F26522"/>
+      <stop offset="0.6" stop-color="#F7954F"/>
+      <stop offset="1" stop-color="#F26522"/>
+    </linearGradient>
+    <linearGradient id="ai-green" x1="400" y1="40" x2="540" y2="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00A651"/>
+      <stop offset="0.25" stop-color="#00A651"/>
+      <stop offset="0.6" stop-color="#9CCB3B"/>
+      <stop offset="1" stop-color="#3AB54A"/>
+    </linearGradient>
+    <linearGradient id="ai-gray" x1="10" y1="0" x2="560" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8C8C8C"/>
+      <stop offset="0.2" stop-color="#C4C4C4"/>
+      <stop offset="0.55" stop-color="#9A9A9A"/>
+      <stop offset="1" stop-color="#444444"/>
+    </linearGradient>
+    <clipPath id="ai-ring">
+      <path clip-rule="evenodd" d="M11 313a302 302 0 1 0 604 0a302 302 0 1 0-604 0Z
+        M258 106C280 82 304 82 322 108L516 372C536 402 522 440 484 446Q322 470 164 462C120 460 100 420 116 384Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#ai-ring)">
+    <path fill="url(#ai-green)" d="M440 -10Q340 40 268 98L313 300L524 392Q520 500 470 640H640V-10Z"/>
+    <path fill="url(#ai-orange)" d="M-10 -10H440Q340 40 268 98L313 300L162 462Q60 420 0 318H-10Z"/>
+    <path fill="url(#ai-gray)" d="M-10 318H0Q60 420 162 462L313 300L524 392Q520 500 470 640H-10Z"/>
+  </g>
+</svg>

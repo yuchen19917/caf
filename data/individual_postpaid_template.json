@@ -1,0 +1,28 @@
+{
+  "id": "TPL-IND-POST-001",
+  "name": "Individual Postpaid SIM Registration",
+  "description": "Personal postpaid SIM application with subscriber identification, monthly billing, credit limit, deposit and KYC checklist.",
+  "customerType": "Individual",
+  "businessType": "SIM Registration",
+  "channel": "Direct",
+  "product": "Postpaid Standard",
+  "isActive": true,
+  "version": "1.0",
+  "lifecycle": "active",
+  "lastModified": "2026-11-15T00:00:00Z",
+  "fields": [
+    { "id": "fullName", "label": "Full name", "type": "text", "required": true },
+    { "id": "idType", "label": "Identity document type", "type": "select", "required": true, "options": ["Tazkira", "Passport"] },
+    { "id": "idNumber", "label": "Identity document number", "type": "text", "required": true },
+    { "id": "contactNumber", "label": "Contact number", "type": "text", "required": true },
+    { "id": "address", "label": "Residential address", "type": "textarea", "required": true },
+    { "id": "billingAddress", "label": "Billing address", "type": "textarea", "required": true },
+    { "id": "email", "label": "Billing email", "type": "text", "required": false },
+    { "id": "planName", "label": "Postpaid plan", "type": "select", "required": true, "options": ["Postpaid Standard 20 GB"] },
+    { "id": "billingCycle", "label": "Billing cycle", "type": "select", "required": true, "options": ["Monthly"] },
+    { "id": "monthlyFee", "label": "Monthly fee (AFN)", "type": "number", "required": true },
+    { "id": "creditLimit", "label": "Credit limit (AFN)", "type": "number", "required": true },
+    { "id": "securityDeposit", "label": "Security deposit (AFN)", "type": "number", "required": true }
+  ],
+  "termsAndConditions": "<h1>Customer Application Form</h1><p>Individual Postpaid SIM Registration</p><h2>Subscriber information</h2><table><tbody><tr><th>Full name</th><td>{{fullName}}</td><th>Contact number</th><td>{{contactNumber}}</td></tr><tr><th>ID type</th><td>{{idType}}</td><th>ID number</th><td>{{idNumber}}</td></tr><tr><th>Residential address</th><td colspan='3'>{{address}}</td></tr></tbody></table><h2>Plan and billing</h2><table><tbody><tr><th>Plan</th><td>Postpaid Standard 20 GB</td><th>Billing cycle</th><td>Monthly</td></tr><tr><th>Billing address</th><td>{{billingAddress}}</td><th>Billing email</th><td>{{email}}</td></tr><tr><th>Monthly fee</th><td>AFN 500</td><th>Credit limit</th><td>AFN 1,500</td></tr><tr><th>Security deposit</th><td colspan='3'>AFN 1,000</td></tr></tbody></table><h2>Required documents</h2><ul><li>Identity document</li><li>Proof of billing address</li><li>Signed SIM registration form</li></ul><h2>Subscriber declaration</h2><p>I confirm that the information provided is accurate and that I have reviewed the selected postpaid plan and billing terms.</p><p>Subscriber signature __________________________________</p><p>Date ____________________</p>"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "0cd03749-188b-4c0f-b730-76b2c67d5cb1",
+  "version": 2,
+  "name": "AsiaInfo Individual Prepaid SIM Registration",
+  "fields": [
+    {
+      "key": "fullName",
+      "label": "Full name",
+      "required": true,
+      "maxLength": 120
+    },
+    {
+      "key": "idType",
+      "label": "ID type",
+      "required": true,
+      "maxLength": 40
+    },
+    {
+      "key": "idNumber",
+      "label": "ID number",
+      "required": true,
+      "maxLength": 60
+    },
+    {
+      "key": "contactNumber",
+      "label": "Contact number",
+      "required": true,
+      "maxLength": 30
+    }
+  ],
+  "documents": [
+    {
+      "code": "identity",
+      "label": "Identity document",
+      "required": true
+    },
+    {
+      "code": "registration",
+      "label": "Signed SIM Registration Form",
+      "required": true
+    }
+  ]
+}
